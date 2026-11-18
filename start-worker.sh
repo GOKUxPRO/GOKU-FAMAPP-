@@ -1,2 +1,2 @@
 #!/bin/bash
-exec php /app/worker.php
+exec frankenphp run --config /etc/caddy/Caddyfile
