@@ -1,9 +1,11 @@
 {
-    auto_https off
+    # HTTPS રીડાયરેક્ટ બંધ કરો
+    auto_https disable_redirects
     {$PORT:80}
     frankenphp
 }
 
+# ફક્ત HTTP પર જ સાંભળો (http:// ઉમેરવું જરૂરી છે)
 http://:{$PORT:80} {
     root * /app/public
     encode gzip
