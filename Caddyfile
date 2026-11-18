@@ -4,9 +4,8 @@
     frankenphp
 }
 
-:{$PORT:80} {
+http://:{$PORT:80} {
     root * /app/public
     encode gzip
-    try_files {path} {path}/ /index.php
     php_server
 }
