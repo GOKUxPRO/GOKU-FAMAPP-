@@ -1,9 +1,9 @@
 {
-    # Caddy ને કહો કે તે HTTPS પર રીડાયરેક્ટ ના કરે
     auto_https off
+    # Railway પોતે HTTPS સંભાળે છે
 }
 
-:80 {
+http://:80 {
     root * /app/public
     encode gzip
     php_server
