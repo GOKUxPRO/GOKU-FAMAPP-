@@ -1,4 +1,5 @@
 {
+    # Railway પોતે HTTPS સંભાળે છે, તેથી ઓટોમેટિક HTTPS બંધ કરો
     auto_https off
     {$PORT:80}
     frankenphp
