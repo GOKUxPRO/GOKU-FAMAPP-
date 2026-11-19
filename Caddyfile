@@ -1,11 +1,9 @@
 {
-    # Railway પોતે HTTPS સંભાળે છે, તેથી ઓટોમેટિક HTTPS બંધ કરો
+    # Caddy ને કહો કે તે HTTPS પર રીડાયરેક્ટ ના કરે
     auto_https off
-    {$PORT:80}
-    frankenphp
 }
 
-:{$PORT:80} {
+:80 {
     root * /app/public
     encode gzip
     php_server
