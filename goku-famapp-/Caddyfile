@@ -1,0 +1,16 @@
+{
+    auto_https off
+    admin off
+}
+
+:80 {
+    root * /app/public
+    encode gzip
+
+    # Railway HTTPS terminate kare che, app plain HTTP par serve kare
+    # X-Forwarded-Proto header ne ignore karo — redirect loop avoid karvaa
+    @notphp not path *.php
+    try_files {path} {path}/ /index.php?{query}
+
+    php_server
+}
