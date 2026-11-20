@@ -1,6 +1,6 @@
 <?php
 set_time_limit(0);
-require __DIR__ . '/db.php';
+require __DIR__ . '/db.php'; // Aa tamari Firebase SDK vali file che
 
 echo "🚀 Worker Started...\n";
 
@@ -51,26 +51,13 @@ function get_email_body($inbox, $msgNo) {
 }
 
 function search_famapp_emails($inbox) {
-    // Strategy 1: Gmail native search (best — searches all categories)
     $result = @imap_search($inbox, 'X-GM-RAW "from:(famapp.in OR fampay.in OR famapp.com)"');
     if ($result) return $result;
 
-    // Strategy 2: Simple partial match
     $result = @imap_search($inbox, 'FROM "famapp"');
     if ($result) return $result;
 
     $result = @imap_search($inbox, 'FROM "fampay"');
-    if ($result) return $result;
-
-    // Strategy 3: Proper OR syntax (right-associative)
-    $result = @imap_search($inbox, 'OR FROM "no-reply@famapp.in" OR FROM "noreply@famapp.in" FROM "hello@famapp.in"');
-    if ($result) return $result;
-
-    // Strategy 4: Subject-based fallback
-    $result = @imap_search($inbox, 'SUBJECT "famapp"');
-    if ($result) return $result;
-
-    $result = @imap_search($inbox, 'SUBJECT "fampay"');
     if ($result) return $result;
 
     return false;
@@ -80,7 +67,6 @@ while (true) {
     $processedCount = 0;
 
     try {
-        // Fetch all users, filter in PHP (no Firebase index needed)
         $allUsers = $database->getReference('users')->getValue() ?: [];
         $activeUsers = [];
 
@@ -101,10 +87,7 @@ while (true) {
 
         foreach ($activeUsers as $userId => $user) {
             $email = $user['email'] ?? '';
-            if (!$email) {
-                echo "❌ Missing email for user {$userId}\n";
-                continue;
-            }
+            if (!$email) continue;
 
             $pass = decrypt_pass($user['app_password'] ?? '');
             if (!$pass) {
@@ -112,7 +95,6 @@ while (true) {
                 continue;
             }
 
-            // Search both INBOX and All Mail
             $folders = ['INBOX', '[Gmail]/All Mail'];
             $foundAny = false;
 
@@ -126,7 +108,6 @@ while (true) {
                 $emails = search_famapp_emails($inbox);
 
                 if (!$emails) {
-                    echo "📭 [{$folder}] No FamApp emails for {$email}\n";
                     imap_close($inbox);
                     continue;
                 }
@@ -139,10 +120,7 @@ while (true) {
 
                 foreach ($emails as $num) {
                     $header = @imap_headerinfo($inbox, $num);
-                    if (!$header) {
-                        echo "   ⚠️ headerinfo failed for msg {$num}\n";
-                        continue;
-                    }
+                    if (!$header) continue;
 
                     $mid = trim($header->message_id ?? '', '<> ');
                     $uid = imap_uid($inbox, $num);
@@ -159,52 +137,49 @@ while (true) {
                     $clean = preg_replace('/\s+/', ' ', $clean);
                     $clean = trim($clean);
 
-                    echo "   → Processing: " . substr($clean, 0, 120) . "...\n";
-
                     $isPayment = (
                         stripos($clean, 'you received') !== false ||
                         stripos($clean, 'successfully received') !== false ||
-                        stripos($clean, 'you have successfully received') !== false ||
                         stripos($clean, 'money received') !== false ||
-                        stripos($clean, 'payment received') !== false ||
-                        stripos($clean, 'amount received') !== false ||
-                        stripos($clean, 'credited') !== false ||
-                        stripos($clean, 'received ₹') !== false ||
-                        stripos($clean, 'received rs') !== false ||
                         preg_match('/received\s+(₹|rs\.?)\s*[\d,]+/i', $clean)
                     );
 
                     if ($isPayment) {
                         $amount = 0;
                         $sender = "Unknown";
-                        $txn    = "";
+                        $txn_id = ""; // FMPIB...
+                        $utr    = ""; // 12 digit UTR
 
+                        // 1. Amount
                         if (preg_match('/(?:₹|Rs\.?|INR)\s*([\d,]+(?:\.\d{1,2})?)/iu', $clean, $m)) {
                             $amount = floatval(str_replace(',', '', $m[1]));
                         }
 
+                        // 2. Sender
                         if (preg_match('/from\s+([A-Za-z][A-Za-z0-9\s\.\-]{1,45}?)(?=\s*(?:Transaction|Txn|Date|Updated|Balance|If|on\s|$))/iu', $clean, $m)) {
-                            $sender = trim($m[1]);
-                        } elseif (preg_match('/(?:from|by)\s+([A-Za-z][A-Za-z0-9\s\.\-]{2,40})/iu', $clean, $m)) {
                             $sender = trim($m[1]);
                         }
 
-                        if (preg_match('/(?:Transaction\s*ID|Txn\s*ID|UTR|Ref\.?\s*No\.?|Reference)\s*[:\-]?\s*([A-Z0-9]{8,})/i', $clean, $m)) {
-                            $txn = trim($m[1]);
+                        // 3. Transaction ID (FMPIB...)
+                        if (preg_match('/(FMPIB[A-Z0-9]{8,15})/i', $clean, $m)) {
+                            $txn_id = trim($m[1]); 
+                        }
+
+                        // 4. UTR (10 to 15 digits)
+                        if (preg_match('/UTR\s*[:\-]?\s*(\d{10,15})/i', $clean, $m)) {
+                            $utr = trim($m[1]); 
                         }
 
                         if ($amount > 0) {
                             $database->getReference('payments/' . $userId)->push([
-                                'amount'          => $amount,
+                                'amount'         => $amount,
                                 'sender_name'    => $sender,
-                                'transaction_id' => $txn,
+                                'transaction_id' => $txn_id,
+                                'utr'            => $utr,
                                 'created_at'     => time(),
                             ]);
-                            echo "   ✅ Saved: ₹{$amount} from {$sender} | TXN: {$txn}\n";
+                            echo "   ✅ Saved: ₹{$amount} | TXN: {$txn_id} | UTR: {$utr}\n";
                             $processedCount++;
-                        } else {
-                            echo "   ⚠️ Payment keywords found but amount not extracted.\n";
-                            echo "   Snippet: " . substr($clean, 0, 300) . "\n";
                         }
                     }
 
@@ -213,16 +188,10 @@ while (true) {
 
                 imap_close($inbox);
             }
-
-            if (!$foundAny) {
-                echo "⚠️ No FamApp emails anywhere for {$email}\n";
-            }
-
             sleep(1);
         }
     } catch (\Throwable $e) {
         echo "💥 Error: " . $e->getMessage() . "\n";
-        echo "   File: " . $e->getFile() . ":" . $e->getLine() . "\n";
     }
 
     echo "✅ Cycle complete. Processed: {$processedCount}. Sleeping 25s...\n";
