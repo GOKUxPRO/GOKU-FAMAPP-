@@ -3,7 +3,9 @@ header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type, X-API-Key");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { exit; }
-require __DIR__ . '/../db.php';
+
+// Note: '/../' etle ke db.php public folder ni bahar che.
+require __DIR__ . '/../db.php'; 
 
 $action = $_GET['action'] ?? '';
 $input = json_decode(file_get_contents('php://input'), true) ?: [];
@@ -12,7 +14,7 @@ $input = json_decode(file_get_contents('php://input'), true) ?: [];
 $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 $rateLimitRef = 'rate_limits/' . md5($ip) . '/' . floor(time() / 60);
 $requestCount = (int)($database->getReference($rateLimitRef)->getValue() ?: 0);
-if ($requestCount >= API_RATE_LIMIT_PER_MINUTE) {
+if ($requestCount >= (defined('API_RATE_LIMIT_PER_MINUTE') ? API_RATE_LIMIT_PER_MINUTE : 60)) {
     http_response_code(429);
     echo json_encode(["error" => "Too many requests."]); exit;
 }
@@ -41,6 +43,7 @@ if ($action === 'register') {
     $newUserRef = $database->getReference('users')->push([
         'email' => $email,
         'app_password' => encrypt_pass($appPassword),
+        'api_key' => $rawApiKey,
         'status' => 'active',
         'created_at' => time()
     ]);
@@ -59,19 +62,39 @@ if ($action === 'get_payments') {
     if (!$userId) { echo json_encode(["error" => "Invalid API Key."]); exit; }
 
     $payments = $database->getReference('payments/' . $userId)->getValue() ?: [];
+    $payments = array_values($payments);
     usort($payments, fn($a, $b) => ($b['created_at'] ?? 0) <=> ($a['created_at'] ?? 0));
 
     $result = [];
     foreach (array_slice($payments, 0, 50) as $p) {
         $result[] = [
-            "amount" => $p['amount'],
+            "amount" => $p['amount'] ?? 0,
             "utr" => $p['utr'] ?? '-',
             "transaction_id" => $p['transaction_id'] ?? '-',
             "sender_name" => $p['sender_name'] ?? '-',
-            "received_at" => date('Y-m-d H:i:s', $p['created_at'])
+            "received_at" => date('Y-m-d H:i:s', $p['created_at'] ?? time())
         ];
     }
     echo json_encode(["success" => true, "data" => $result]);
+    exit;
+}
+
+if ($action === 'delete_key') {
+    $headers = array_change_key_case(getallheaders(), CASE_LOWER);
+    $apiKey = $headers['x-api-key'] ?? $input['api_key'] ?? '';
+    if (!$apiKey) { echo json_encode(["error" => "API Key missing."]); exit; }
+
+    $hashedApiKey = hash('sha256', $apiKey);
+    $userId = $database->getReference('api_keys/' . $hashedApiKey)->getValue();
+    if (!$userId) { echo json_encode(["error" => "Invalid API Key."]); exit; }
+
+    $database->getReference('api_keys/' . $hashedApiKey)->remove();
+    $database->getReference('users/' . $userId)->update([
+        'status' => 'inactive',
+        'api_key' => null
+    ]);
+
+    echo json_encode(["success" => true, "message" => "API Key deleted successfully."]);
     exit;
 }
 
