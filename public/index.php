@@ -13,7 +13,7 @@ body{background:var(--bg);color:var(--tx);min-height:100vh;display:flex;justify-
 h1{font-weight:700;letter-spacing:-0.5px}
 .accent{background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 
-/* Glass Auth Card */
+/* Auth Screens */
 #auth-screen{display:flex;flex-direction:column;gap:20px;animation:fadeIn 0.6s ease-out}
 .auth-card{background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--bd);border-radius:24px;padding:40px;box-shadow:0 30px 60px -10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);max-width:440px;margin:auto;width:100%}
 .auth-header{text-align:center;margin-bottom:30px}
@@ -75,7 +75,7 @@ tr:hover td{background:rgba(255,255,255,0.02)}
       <!-- Login Form -->
       <div id="form-login">
         <div class="input-group">
-          <label>Email Address</label>
+          <label>Account Email</label>
           <input type="email" id="log-email" placeholder="you@gmail.com">
         </div>
         <div class="input-group">
@@ -89,7 +89,7 @@ tr:hover td{background:rgba(255,255,255,0.02)}
       <!-- Register Form -->
       <div id="form-register" style="display:none">
         <div class="input-group">
-          <label>Email Address</label>
+          <label>Account Email</label>
           <input type="email" id="reg-email" placeholder="you@gmail.com">
         </div>
         <div class="input-group">
@@ -113,21 +113,29 @@ tr:hover td{background:rgba(255,255,255,0.02)}
       <button class="btn-logout" onclick="logout()">Logout</button>
     </div>
 
-    <!-- SETUP GMAIL (Aave tyare j dekhase jyare API Key na hoy) -->
-    <div id="setup-card" class="c" style="display:none">
+    <!-- SETUP GMAIL CARD (2nd Step) -->
+    <div id="setup-card" class="c" style="display:none; border-color: rgba(255,138,0,0.3); box-shadow: 0 0 20px rgba(255,138,0,0.05);">
       <div class="c-header">
-        <h3>Connect your Gmail 🚀</h3>
+        <h3>Link your FamApp Gmail 🚀</h3>
       </div>
       <p style="color:var(--mut);font-size:14px;margin-bottom:20px;line-height:1.6">
-        To start auto-verifying FamApp payments, you need to link your Gmail. We need a <b>16-character App Password</b>. 
+        Enter the Gmail address where you receive <b>FamApp/FamPay payment emails</b>, along with its 16-character App Password.
       </p>
+      
+      <div class="input-group">
+        <label>FamApp Gmail Address</label>
+        <input type="email" id="famapp-email" placeholder="your-famapp-email@gmail.com">
+      </div>
+
       <div class="input-group">
         <label>16-Character App Password</label>
         <input type="password" id="app-pass" placeholder="xxxx xxxx xxxx xxxx" maxlength="16">
       </div>
+      
       <button class="btn-primary" onclick="linkGmail()" id="linkBtn">Generate API Key</button>
+      
       <a href="https://t.me/HOWTOUSE69" target="_blank" class="tutorial-link">
-        ▶️ Watch Tutorial: How to get App Password?
+        ▶️ Watch Tutorial: How to get 16-digit App Password?
       </a>
       <p id="setup-msg" class="msg"></p>
     </div>
@@ -274,7 +282,7 @@ function loginSuccess(token, apiKey) {
   if (apiKey) {
     setupDashboardUI(apiKey);
   } else {
-    // Show Gmail setup card
+    // Show FamApp Gmail setup card
     $('setup-card').style.display = 'block';
     $('key-card').style.display = 'none';
     $('payments-card').style.display = 'none';
@@ -283,9 +291,13 @@ function loginSuccess(token, apiKey) {
 }
 
 async function linkGmail() {
+  const gmailAddress = $('famapp-email').value.trim();
   const appPass = $('app-pass').value.replace(/\s/g, '');
   const msg = $('setup-msg');
 
+  if (!gmailAddress.includes('@')) {
+    return showMsg(msg, 'Please enter a valid Gmail address.', 'error');
+  }
   if (appPass.length !== 16) {
     return showMsg(msg, 'App Password must be exactly 16 characters.', 'error');
   }
@@ -296,7 +308,10 @@ async function linkGmail() {
     const res = await fetch('api.php?action=link_gmail', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'X-Session-Token': currentToken},
-      body: JSON.stringify({app_password: appPass})
+      body: JSON.stringify({
+        gmail_address: gmailAddress,
+        app_password: appPass
+      })
     });
     const data = await res.json();
 
