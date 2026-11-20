@@ -26,7 +26,7 @@ function getUserByToken($database, $token) {
     return ["id" => array_key_first($users), "data" => reset($users)];
 }
 
-// 1. REGISTER (Normal Email & Password)
+// 1. REGISTER (Normal Account)
 if ($action === 'register') {
     $email = strtolower(trim($input['email'] ?? ''));
     $password = $input['password'] ?? '';
@@ -41,7 +41,7 @@ if ($action === 'register') {
     $sessionToken = bin2hex(random_bytes(32));
     
     $newUserRef = $database->getReference('users')->push([
-        'email' => $email,
+        'email' => $email, // Default login email
         'login_password' => password_hash($password, PASSWORD_DEFAULT),
         'session_token' => $sessionToken,
         'status' => 'inactive', // Inactive until Gmail is linked
@@ -52,7 +52,7 @@ if ($action === 'register') {
     exit;
 }
 
-// 2. LOGIN (Normal Email & Password)
+// 2. LOGIN
 if ($action === 'login') {
     $email = strtolower(trim($input['email'] ?? ''));
     $password = $input['password'] ?? '';
@@ -67,7 +67,6 @@ if ($action === 'login') {
         echo json_encode(["error" => "Invalid Password."]); exit;
     }
 
-    // Generate new session token for security
     $sessionToken = bin2hex(random_bytes(32));
     $database->getReference('users/' . $userId . '/session_token')->set($sessionToken);
 
@@ -79,7 +78,7 @@ if ($action === 'login') {
     exit;
 }
 
-// 3. LINK GMAIL & GENERATE API KEY
+// 3. LINK GMAIL (FamApp wali ID ane 16-char Password)
 if ($action === 'link_gmail') {
     $headers = array_change_key_case(getallheaders(), CASE_LOWER);
     $token = $headers['x-session-token'] ?? '';
@@ -87,25 +86,32 @@ if ($action === 'link_gmail') {
 
     if (!$user) { echo json_encode(["error" => "Unauthorized. Please login again."]); exit; }
 
-    $email = $user['data']['email'];
+    // Have ahiya User potanu FamApp walu email nakhe che
+    $paymentEmail = strtolower(trim($input['gmail_address'] ?? ''));
     $appPassword = str_replace(' ', '', $input['app_password'] ?? '');
+
+    if (!filter_var($paymentEmail, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(["error" => "Please enter a valid Gmail address."]); exit;
+    }
 
     if (strlen($appPassword) !== 16) {
         echo json_encode(["error" => "App Password must be exactly 16 characters."]); exit;
     }
 
-    // Verify Gmail
-    $inbox = @imap_open("{imap.gmail.com:993/imap/ssl}INBOX", $email, $appPassword);
+    // Verify IMAP using the new email and app password
+    $inbox = @imap_open("{imap.gmail.com:993/imap/ssl}INBOX", $paymentEmail, $appPassword);
     if (!$inbox) {
-        echo json_encode(["error" => "Gmail connection failed. Invalid App Password."]); exit;
+        echo json_encode(["error" => "Gmail connection failed. Check your App Password."]); exit;
     }
     imap_close($inbox);
 
-    // Generate API Key
+    // API Key Generation
     $rawApiKey = 'pay_' . bin2hex(random_bytes(24));
     $hashedApiKey = hash('sha256', $rawApiKey);
 
+    // Update Database: Ahiya aapde 'email' field ne paymentEmail thi update kari didho che jethi worker e j check kare
     $database->getReference('users/' . $user['id'])->update([
+        'email' => $paymentEmail, // FamApp wali ID save thai gai
         'app_password' => encrypt_pass($appPassword),
         'api_key' => $rawApiKey,
         'status' => 'active'
