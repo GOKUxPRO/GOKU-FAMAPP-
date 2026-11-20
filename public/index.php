@@ -13,15 +13,12 @@ body{background:var(--bg);color:var(--tx);min-height:100vh;display:flex;justify-
 h1{font-weight:700;letter-spacing:-0.5px}
 .accent{background:linear-gradient(135deg,var(--ac),var(--ac2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 
-/* Auth Screens */
-#auth-screen{display:flex;flex-direction:column;gap:20px;animation:fadeIn 0.6s ease-out}
-.auth-card{background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--bd);border-radius:24px;padding:40px;box-shadow:0 30px 60px -10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);max-width:440px;margin:auto;width:100%}
+/* Setup Card */
+#setup-screen{display:flex;flex-direction:column;gap:20px;animation:fadeIn 0.6s ease-out}
+.auth-card{background:var(--card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--bd);border-radius:24px;padding:40px;box-shadow:0 30px 60px -10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);max-width:480px;margin:auto;width:100%}
 .auth-header{text-align:center;margin-bottom:30px}
 .auth-header h1{font-size:36px;margin-bottom:8px}
 .auth-header p{color:var(--mut);font-size:14px}
-.tabs{display:flex;background:rgba(0,0,0,0.4);border-radius:14px;padding:4px;margin-bottom:24px;border:1px solid var(--bd)}
-.tab{flex:1;text-align:center;padding:12px;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;color:var(--mut);transition:all 0.3s}
-.tab.active{background:var(--ac);color:#000;box-shadow:0 4px 15px rgba(255,138,0,0.3)}
 .input-group{margin-bottom:18px}
 .input-group label{display:block;font-size:12px;color:var(--mut);margin-bottom:8px;margin-left:4px;font-weight:600}
 .input-group input{width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--bd);background:rgba(0,0,0,0.3);color:#fff;font-size:15px;transition:all 0.3s;outline:none}
@@ -29,6 +26,10 @@ h1{font-weight:700;letter-spacing:-0.5px}
 .btn-primary{width:100%;padding:16px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#000;font-weight:700;font-size:16px;cursor:pointer;transition:transform 0.2s, box-shadow 0.2s;margin-top:10px}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 25px -5px var(--ac)}
 .btn-primary:active{transform:scale(0.98)}
+
+/* Tutorial Link */
+.tutorial-link{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px;color:var(--ac);text-decoration:none;font-size:14px;font-weight:600;padding:12px;border-radius:10px;background:rgba(255,138,0,0.05);border:1px dashed rgba(255,138,0,0.5);transition:0.3s}
+.tutorial-link:hover{background:rgba(255,138,0,0.1)}
 
 /* Dashboard */
 #main-screen{display:none;animation:fadeIn 0.6s ease-out;width:100%}
@@ -51,97 +52,49 @@ tr:hover td{background:rgba(255,255,255,0.02)}
 .msg{font-size:13px;margin-top:16px;padding:12px;border-radius:10px;text-align:center;display:none;font-weight:500}
 .msg.error{background:rgba(255,77,0,0.1);color:#ff4d00;border:1px solid rgba(255,77,0,0.3);display:block}
 .msg.success{background:rgba(46,204,113,0.1);color:#2ecc71;border:1px solid rgba(46,204,113,0.3);display:block}
-.tutorial-link{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;color:var(--ac);text-decoration:none;font-size:14px;font-weight:600;padding:12px;border-radius:10px;background:rgba(255,138,0,0.05);border:1px dashed rgba(255,138,0,0.5);transition:0.3s}
-.tutorial-link:hover{background:rgba(255,138,0,0.1)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 <div class="w">
 
-  <!-- AUTH SCREEN (Login/Register) -->
-  <div id="auth-screen">
+  <!-- SETUP / REGISTER SCREEN (Page 1) -->
+  <div id="setup-screen">
     <div class="auth-card">
       <div class="auth-header">
         <h1>⚡ Goku<span class="accent">Pay</span></h1>
-        <p>Next-Gen Payment Gateway</p>
+        <p>FamApp UPI Payment Gateway</p>
       </div>
 
-      <div class="tabs">
-        <div class="tab active" onclick="switchTab('login')">Login</div>
-        <div class="tab" onclick="switchTab('register')">Register</div>
-      </div>
-
-      <!-- Login Form -->
-      <div id="form-login">
-        <div class="input-group">
-          <label>Account Email</label>
-          <input type="email" id="log-email" placeholder="you@gmail.com">
-        </div>
-        <div class="input-group">
-          <label>Account Password</label>
-          <input type="password" id="log-pass" placeholder="Enter your password">
-        </div>
-        <button class="btn-primary" onclick="doLogin()" id="logBtn">Login</button>
-        <p id="log-msg" class="msg"></p>
-      </div>
-
-      <!-- Register Form -->
-      <div id="form-register" style="display:none">
-        <div class="input-group">
-          <label>Account Email</label>
-          <input type="email" id="reg-email" placeholder="you@gmail.com">
-        </div>
-        <div class="input-group">
-          <label>Create Password</label>
-          <input type="password" id="reg-pass" placeholder="Min 6 characters">
-        </div>
-        <div class="input-group">
-          <label>Confirm Password</label>
-          <input type="password" id="reg-confirm" placeholder="Repeat password">
-        </div>
-        <button class="btn-primary" onclick="doRegister()" id="regBtn">Create Account</button>
-        <p id="reg-msg" class="msg"></p>
-      </div>
-    </div>
-  </div>
-
-  <!-- MAIN DASHBOARD -->
-  <div id="main-screen">
-    <div class="top-bar">
-      <h2>⚡ Goku<span class="accent">Pay</span></h1></h2>
-      <button class="btn-logout" onclick="logout()">Logout</button>
-    </div>
-
-    <!-- SETUP GMAIL CARD (2nd Step) -->
-    <div id="setup-card" class="c" style="display:none; border-color: rgba(255,138,0,0.3); box-shadow: 0 0 20px rgba(255,138,0,0.05);">
-      <div class="c-header">
-        <h3>Link your FamApp Gmail 🚀</h3>
-      </div>
-      <p style="color:var(--mut);font-size:14px;margin-bottom:20px;line-height:1.6">
-        Enter the Gmail address where you receive <b>FamApp/FamPay payment emails</b>, along with its 16-character App Password.
-      </p>
-      
       <div class="input-group">
         <label>FamApp Gmail Address</label>
-        <input type="email" id="famapp-email" placeholder="your-famapp-email@gmail.com">
+        <input type="email" id="email" placeholder="your-famapp-email@gmail.com">
       </div>
 
       <div class="input-group">
         <label>16-Character App Password</label>
         <input type="password" id="app-pass" placeholder="xxxx xxxx xxxx xxxx" maxlength="16">
       </div>
-      
-      <button class="btn-primary" onclick="linkGmail()" id="linkBtn">Generate API Key</button>
-      
+
+      <!-- Tutorial Link (Password ni niche, Generate button ni upar) -->
       <a href="https://t.me/HOWTOUSE69" target="_blank" class="tutorial-link">
         ▶️ Watch Tutorial: How to get 16-digit App Password?
       </a>
-      <p id="setup-msg" class="msg"></p>
+
+      <button class="btn-primary" onclick="doRegister()" id="regBtn">Generate API Key</button>
+      <p id="reg-msg" class="msg"></p>
+    </div>
+  </div>
+
+  <!-- MAIN DASHBOARD (Page 2) -->
+  <div id="main-screen">
+    <div class="top-bar">
+      <h2>⚡ Goku<span class="accent">Pay</span></h2>
+      <button class="btn-logout" onclick="logout()">Logout</button>
     </div>
 
     <!-- API KEY DISPLAY -->
-    <div id="key-card" class="c" style="display:none">
+    <div class="c">
       <div class="c-header">
         <h3>Your API Key</h3>
       </div>
@@ -153,7 +106,7 @@ tr:hover td{background:rgba(255,255,255,0.02)}
     </div>
 
     <!-- PAYMENTS TABLE -->
-    <div id="payments-card" class="c" style="display:none">
+    <div class="c">
       <div class="c-header">
         <h3>Recent Payments</h3>
         <button class="copy-btn" onclick="loadPayments()">Refresh</button>
@@ -174,10 +127,10 @@ tr:hover td{background:rgba(255,255,255,0.02)}
     </div>
 
     <!-- DANGER ZONE -->
-    <div id="danger-card" class="c danger-zone" style="display:none">
+    <div class="c danger-zone">
       <h3 style="color:#ff4d00;margin-bottom:8px">⚠️ Danger Zone</h3>
       <p style="color:var(--mut);font-size:14px;margin-bottom:20px">Deleting your account will permanently remove your linked Gmail, API Key, and all payment history.</p>
-      <button class="btn-danger" onclick="deleteAccount()">Delete Account</button>
+      <button class="btn-danger" onclick="deleteAccount()">Delete Email / Account</button>
     </div>
   </div>
 
@@ -185,167 +138,67 @@ tr:hover td{background:rgba(255,255,255,0.02)}
 
 <script>
 const $ = id => document.getElementById(id);
-let currentToken = '';
 let currentApiKey = '';
 let refreshTimer;
-
-// ================= AUTH =================
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  if(tab === 'login'){
-    document.querySelectorAll('.tab')[0].classList.add('active');
-    $('form-login').style.display = 'block';
-    $('form-register').style.display = 'none';
-  } else {
-    document.querySelectorAll('.tab')[1].classList.add('active');
-    $('form-login').style.display = 'none';
-    $('form-register').style.display = 'block';
-  }
-}
-
-async function doRegister() {
-  const email = $('reg-email').value.trim();
-  const pass = $('reg-pass').value;
-  const confirm = $('reg-confirm').value;
-  const msg = $('reg-msg');
-  
-  if(pass.length < 6) return showMsg(msg, 'Password must be at least 6 characters.', 'error');
-  if(pass !== confirm) return showMsg(msg, 'Passwords do not match.', 'error');
-
-  $('regBtn').disabled = true; $('regBtn').textContent = 'Creating Account...';
-  
-  try {
-    const res = await fetch('api.php?action=register', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email, password: pass})
-    });
-    const data = await res.json();
-    
-    if(data.success) {
-      showMsg(msg, '✅ Account created!', 'success');
-      setTimeout(() => loginSuccess(data.session_token, data.api_key), 1000);
-    } else {
-      showMsg(msg, '❌ ' + data.error, 'error');
-      $('regBtn').disabled = false; $('regBtn').textContent = 'Create Account';
-    }
-  } catch(e) {
-    showMsg(msg, 'Network error.', 'error');
-    $('regBtn').disabled = false; $('regBtn').textContent = 'Create Account';
-  }
-}
-
-async function doLogin() {
-  const email = $('log-email').value.trim();
-  const pass = $('log-pass').value;
-  const msg = $('log-msg');
-
-  $('logBtn').disabled = true; $('logBtn').textContent = 'Verifying...';
-  
-  try {
-    const res = await fetch('api.php?action=login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email, password: pass})
-    });
-    const data = await res.json();
-    
-    if(data.success) {
-      showMsg(msg, '✅ Login successful!', 'success');
-      setTimeout(() => loginSuccess(data.session_token, data.api_key), 800);
-    } else {
-      showMsg(msg, '❌ ' + data.error, 'error');
-      $('logBtn').disabled = false; $('logBtn').textContent = 'Login';
-    }
-  } catch(e) {
-    showMsg(msg, 'Network error.', 'error');
-    $('logBtn').disabled = false; $('logBtn').textContent = 'Login';
-  }
-}
 
 function showMsg(el, text, type) {
   el.textContent = text;
   el.className = 'msg ' + type;
 }
 
-// ================= DASHBOARD =================
-function loginSuccess(token, apiKey) {
-  currentToken = token;
-  currentApiKey = apiKey;
-  
-  localStorage.setItem('goku_token', token);
-  localStorage.setItem('goku_api_key', apiKey || '');
-  
-  $('auth-screen').style.display = 'none';
-  $('main-screen').style.display = 'block';
-  
-  if (apiKey) {
-    setupDashboardUI(apiKey);
-  } else {
-    // Show FamApp Gmail setup card
-    $('setup-card').style.display = 'block';
-    $('key-card').style.display = 'none';
-    $('payments-card').style.display = 'none';
-    $('danger-card').style.display = 'none';
-  }
-}
+// ================= REGISTER =================
+async function doRegister() {
+  const email = $('email').value.trim();
+  const pass = $('app-pass').value.replace(/\s/g, '');
+  const msg = $('reg-msg');
 
-async function linkGmail() {
-  const gmailAddress = $('famapp-email').value.trim();
-  const appPass = $('app-pass').value.replace(/\s/g, '');
-  const msg = $('setup-msg');
+  if (!email.includes('@')) return showMsg(msg, 'Please enter a valid Gmail address.', 'error');
+  if (pass.length !== 16) return showMsg(msg, 'App Password must be exactly 16 characters.', 'error');
 
-  if (!gmailAddress.includes('@')) {
-    return showMsg(msg, 'Please enter a valid Gmail address.', 'error');
-  }
-  if (appPass.length !== 16) {
-    return showMsg(msg, 'App Password must be exactly 16 characters.', 'error');
-  }
-
-  $('linkBtn').disabled = true; $('linkBtn').textContent = 'Verifying Gmail...';
+  $('regBtn').disabled = true; $('regBtn').textContent = 'Verifying Gmail...';
+  msg.className = 'msg'; msg.style.display = 'none';
 
   try {
-    const res = await fetch('api.php?action=link_gmail', {
+    const res = await fetch('api.php?action=register', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json', 'X-Session-Token': currentToken},
-      body: JSON.stringify({
-        gmail_address: gmailAddress,
-        app_password: appPass
-      })
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email, app_password: pass})
     });
     const data = await res.json();
 
     if (data.success) {
+      // LocalStorage ma key save kari didhi
+      localStorage.setItem('goku_api_key', data.api_key);
       currentApiKey = data.api_key;
-      localStorage.setItem('goku_api_key', currentApiKey);
-      setupDashboardUI(currentApiKey);
+      
+      // Dashboard par lai jao
+      setTimeout(() => loginSuccess(currentApiKey), 800);
     } else {
       showMsg(msg, '❌ ' + data.error, 'error');
-      $('linkBtn').disabled = false; $('linkBtn').textContent = 'Generate API Key';
+      $('regBtn').disabled = false; $('regBtn').textContent = 'Generate API Key';
     }
   } catch (e) {
-    showMsg(msg, 'Network error.', 'error');
-    $('linkBtn').disabled = false; $('linkBtn').textContent = 'Generate API Key';
+    showMsg(msg, 'Network error. Check your internet.', 'error');
+    $('regBtn').disabled = false; $('regBtn').textContent = 'Generate API Key';
   }
 }
 
-function setupDashboardUI(apiKey) {
-  $('setup-card').style.display = 'none';
-  $('key-card').style.display = 'block';
-  $('payments-card').style.display = 'block';
-  $('danger-card').style.display = 'block';
+// ================= DASHBOARD =================
+function loginSuccess(key) {
+  currentApiKey = key;
   
-  $('apiKeyText').textContent = apiKey;
+  $('setup-screen').style.display = 'none';
+  $('main-screen').style.display = 'block';
+  $('apiKeyText').textContent = key;
   
   loadPayments();
   clearInterval(refreshTimer);
-  refreshTimer = setInterval(loadPayments, 15000);
+  refreshTimer = setInterval(loadPayments, 15000); // Auto refresh every 15s
 }
 
 function logout() {
-  localStorage.removeItem('goku_token');
   localStorage.removeItem('goku_api_key');
-  location.reload();
+  location.reload(); // Refresh page to go back to setup screen
 }
 
 function copyKey() {
@@ -356,7 +209,7 @@ function copyKey() {
 }
 
 async function loadPayments() {
-  if(!currentApiKey) return;
+  if (!currentApiKey) return;
   try {
     const res = await fetch('api.php?action=get_payments', {
       headers: {'X-API-Key': currentApiKey}
@@ -365,7 +218,7 @@ async function loadPayments() {
     
     const tbody = $('payTable').querySelector('tbody');
     
-    if(!data.success || !data.data || !data.data.length) {
+    if (!data.success || !data.data || !data.data.length) {
       tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--mut)">No payments found yet. Worker is checking emails...</td></tr>`;
       return;
     }
@@ -378,12 +231,12 @@ async function loadPayments() {
         <td style="color:var(--mut);font-size:12px">${p.received_at}</td>
       </tr>
     `).join('');
-  } catch(e) {}
+  } catch (e) {}
 }
 
 async function deleteAccount() {
-  if(!confirm('⚠️ WARNING: Are you sure you want to delete your account permanently?')) return;
-  if(!confirm('🛑 REALLY DELETE? All your data will be lost.')) return;
+  if (!confirm('⚠️ WARNING: Are you sure you want to delete your account permanently?')) return;
+  if (!confirm('🛑 REALLY DELETE? All your data will be lost.')) return;
 
   try {
     const res = await fetch('api.php?action=delete_account', {
@@ -392,23 +245,22 @@ async function deleteAccount() {
     });
     const data = await res.json();
     
-    if(data.success) {
+    if (data.success) {
       alert('✅ Account deleted successfully.');
       logout();
     } else {
       alert('❌ ' + data.error);
     }
-  } catch(e) {
+  } catch (e) {
     alert('❌ Network Error');
   }
 }
 
-// Check if already logged in
+// Check if user is already logged in when opening the page
 window.onload = () => {
-  const savedToken = localStorage.getItem('goku_token');
   const savedKey = localStorage.getItem('goku_api_key');
-  if(savedToken) {
-    loginSuccess(savedToken, savedKey);
+  if (savedKey) {
+    loginSuccess(savedKey);
   }
 };
 </script>
