@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secure Checkout - GOKUxFAM</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- QRCode.js Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+:root{
+  --bg: #f4f7fb;
+  --card: rgba(255,255,255,0.9);
+  --tx: #1e293b;
+  --mut: #64748b;
+  --ac: #2563eb;
+  --bd: #e2e8f0;
+  --green: #10b981;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif}
+body{
+  background-color:var(--bg);color:var(--tx);min-height:100vh;display:flex;justify-content:center;align-items:center;
+  background-image: radial-gradient(circle at 10% 20%, rgba(37,99,235,0.05), transparent 40%), radial-gradient(circle at 90% 80%, rgba(255,138,0,0.05), transparent 40%);
+  overflow-x: hidden;
+}
+.w{width:100%;max-width:440px;padding:20px;position:relative;z-index:1}
+
+/* Background Blobs */
+.bg-blob { position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.6; animation: float 10s infinite ease-in-out alternate; }
+.blob-1 { top: -10%; left: -10%; width: 400px; height: 400px; background: rgba(37,99,235,0.15); }
+.blob-2 { bottom: -10%; right: -10%; width: 300px; height: 300px; background: rgba(255,138,0,0.15); animation-delay: -5s; }
+@keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
+
+/* Main Card */
+.card{
+  background:var(--card); backdrop-filter: blur(20px); border:1px solid rgba(255,255,255,0.8);
+  border-radius:28px; padding:35px 28px; box-shadow:0 20px 40px -10px rgba(0,0,0,0.08);
+  text-align:center; position:relative; overflow:hidden;
+  animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,#2563eb,#ff8a00)}
+.brand{font-size:18px;font-weight:800;color:var(--ac);margin-bottom:20px;letter-spacing:0.5px}
+.brand span{color:#ff8a00}
+h1{font-size:34px;font-weight:800;margin-bottom:8px;color:var(--tx);letter-spacing:-1px}
+p.sub{color:var(--mut);font-size:14px;margin-bottom:20px}
+
+/* UPI Apps Logos */
+.upi-apps { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; animation: fadeIn 0.8s ease-out; }
+.upi-apps img { width: 45px; height: 45px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); object-fit: cover; border: 1px solid #fff; transition: 0.3s; }
+.upi-apps img:hover { transform: translateY(-3px) scale(1.1); }
+
+/* QR Frame */
+.qr-box{
+  background:#fff;padding:16px;border-radius:20px;display:inline-block;margin-bottom:24px;
+  border:2px dashed #cbd5e1; transition:0.3s; position:relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+.qr-box:hover{border-color:var(--ac); transform: scale(1.02);}
+#qrcode { display: flex; justify-content: center; align-items: center; width: 180px; height: 180px; }
+#qrcode img, #qrcode canvas { border-radius: 8px; }
+
+/* Spinner */
+.spinner{width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-radius:10px}
+.spinner::after{content:"";width:40px;height:40px;border:4px solid #e2e8f0;border-top-color:var(--ac);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Input */
+.input-group{text-align:left;margin-bottom:24px}
+.input-group label{display:block;font-size:13px;color:var(--tx);margin-bottom:10px;font-weight:700}
+.input-group input{
+  width:100%;padding:16px;border-radius:14px;border:2px solid var(--bd);background:#fff;color:var(--tx);
+  font-size:18px;font-weight:700;text-align:center;letter-spacing:2px;text-transform:uppercase;transition:0.3s;
+}
+.input-group input:focus{border-color:var(--ac);box-shadow:0 0 0 4px rgba(37,99,235,0.15);transform:translateY(-2px)}
+.input-group input::placeholder{font-weight:500;letter-spacing:0;text-transform:none;font-size:15px;color:#94a3b8}
+
+/* Button */
+.btn{
+  width:100%;padding:18px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--ac),#3b82f6);
+  color:#fff;font-weight:800;font-size:16px;cursor:pointer;transition:0.3s;box-shadow:0 10px 20px -8px rgba(37,99,235,0.4);
+  position: relative; overflow: hidden;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 15px 25px -8px rgba(37,99,235,0.5)}
+.btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;box-shadow:none}
+.btn::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: 0.5s; }
+.btn:hover::after { left: 100%; }
+
+/* Messages */
+.msg{font-size:14px;margin-top:20px;padding:14px;border-radius:12px;display:none;font-weight:600;line-height:1.5}
+.msg.err{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;display:block}
+
+/* Animations */
+@keyframes scaleUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<!-- Background Blobs -->
+<div class="bg-blob blob-1"></div>
+<div class="bg-blob blob-2"></div>
+
+<div class="w">
+  <div class="card" id="mainCard">
+    <div class="brand">⚡ GOKU<span>xFAM</span></div>
+    <h1>Pay ₹<span id="amt">0</span></h1>
+    <p class="sub">Scan the QR code using any UPI App</p>
+
+    <!-- UPI Apps Logos -->
+    <div class="upi-apps">
+        <img src="https://i.ibb.co/nTkJ5xX/images.jpg" alt="Google Pay">
+        <img src="https://i.ibb.co/3ynmXKfd/IMG-20261018-001955-357.jpg" alt="PhonePe">
+        <img src="https://i.ibb.co/fYqyB7Lq/IMG-20261018-001957-702.jpg" alt="Paytm">
+    </div>
+    
+    <!-- QR Code Box -->
+    <div class="qr-box">
+      <div class="spinner" id="qrLoader"></div>
+      <div id="qrcode" style="display:none;"></div>
+    </div>
+
+    <div class="input-group">
+      <label>Enter 12-Digit UTR / Transaction ID</label>
+      <input type="text" id="utr" placeholder="e.g. 123456789012" maxlength="20" autocomplete="off">
+    </div>
+
+    <button class="btn" id="submitBtn" onclick="submitUTR()">Verify Payment</button>
+    <p class="msg" id="msgBox"></p>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let orderId = '';
+let currentAmount = 0;
+let upiId = '';
+let payeeName = '';
+
+// URL Parameters
+const urlParams = new URLSearchParams(window.location.search);
+const apiKey = urlParams.get('api_key');
+const amount = urlParams.get('amount');
+
+if (!apiKey || !amount) {
+    $('mainCard').innerHTML = `<div style="font-size:50px;margin-bottom:20px">⚠️</div><h1 style="color:#ef4444">Invalid Link</h1><p class="sub" style="margin-top:10px">Payment link khoto che.</p>`;
+} else {
+    currentAmount = amount;
+    $('amt').textContent = currentAmount;
+    initOrder();
+}
+
+// 1. Backend thi Order ID ane UPI ID melvo
+async function initOrder() {
+    try {
+        const res = await fetch('api.php?action=create_order', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ api_key: apiKey, amount: currentAmount })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            orderId = data.order_id;
+            upiId = data.upi_id;
+            payeeName = data.payee_name;
+            generateQR(); // Data mali gaya, have QR banavo
+        } else {
+            $('qrLoader').style.display = 'none';
+            showMsg('err', data.error);
+        }
+    } catch(e) {
+        $('qrLoader').style.display = 'none';
+        showMsg('err', 'Network error. Please refresh.');
+    }
+}
+
+// 2. Frontend ma QR Code Generate karo
+function generateQR() {
+    // UPI String (Amount ane Order ID sathe)
+    const upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${currentAmount}&cu=INR&tn=${orderId}`;
+    
+    // QRCodeJS library use kari ne QR banavo
+    new QRCode(document.getElementById("qrcode"), {
+        text: upiString,
+        width: 180,
+        height: 180,
+        colorDark : "#0f172a",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+    });
+    
+    // Loader hide karo ane QR show karo
+    $('qrLoader').style.display = 'none';
+    $('qrcode').style.display = 'flex';
+}
+
+// 3. UTR Submit ane Verify
+async function submitUTR() {
+    const utr = $('utr').value.trim().toUpperCase();
+    const btn = $('submitBtn');
+    const msg = $('msgBox');
+
+    if (utr.length < 8) return showMsg('err', 'Please enter a valid UTR / Transaction ID.');
+
+    btn.disabled = true; btn.textContent = 'Checking with Bank...';
+    msg.style.display = 'none';
+
+    try {
+        const res = await fetch('api.php?action=verify_order', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ order_id: orderId, utr: utr })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            // Success UI
+            $('mainCard').innerHTML = `
+                <div style="font-size:70px;margin-bottom:10px; animation: scaleUp 0.5s ease;">🎉</div>
+                <h1 style="color:var(--green); font-size:26px;">Payment Verified!</h1>
+                <p class="sub" style="margin-top:10px;">Your order has been completed successfully.</p>
+                <div style="margin-top:24px;background:#f0fdf4;padding:20px;border-radius:16px;border:1px solid #bbf7d0;text-align:left; box-shadow: 0 4px 10px rgba(16,185,129,0.1);">
+                    <div style="font-size:11px;color:var(--green);font-weight:800;letter-spacing:1px; margin-bottom:4px;">ORDER ID</div>
+                    <div style="font-family:monospace;font-size:15px;color:#0f172a;font-weight:700;">${orderId}</div>
+                    <div style="height:1px; background:#bbf7d0; margin:12px 0;"></div>
+                    <div style="font-size:11px;color:var(--green);font-weight:800;letter-spacing:1px; margin-bottom:4px;">UTR</div>
+                    <div style="font-family:monospace;font-size:15px;color:#0f172a;font-weight:700;">${utr}</div>
+                </div>
+            `;
+        } else {
+            showMsg('err', '❌ ' + data.error);
+            btn.disabled = false; btn.textContent = 'Verify Payment';
+        }
+    } catch(e) {
+        showMsg('err', 'Network error. Try again.');
+        btn.disabled = false; btn.textContent = 'Verify Payment';
+    }
+}
+
+function showMsg(type, text) {
+    const el = $('msgBox');
+    el.className = 'msg ' + type;
+    el.textContent = text;
+}
+</script>
+</body>
+</html>
