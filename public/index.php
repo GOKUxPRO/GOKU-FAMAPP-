@@ -3,681 +3,290 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Goku Pay — FamApp UPI Payment Gateway</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Dashboard - GOKUxFAM</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script defer src="https://unpkg.com/lucide@latest"></script>
 <style>
-:root {
-  --bg: #050505;
-  --bg2: #0a0a0c;
-  --card: rgba(20, 20, 25, 0.65);
-  --card-solid: #121216;
-  --tx: #ffffff;
-  --mut: #8b91a1;
-  --ac: #ff8a00;
-  --ac2: #ff4d00;
-  --ac-glow: rgba(255, 138, 0, 0.15);
-  --bd: rgba(255, 255, 255, 0.08);
-  --success: #2ecc71;
-  --danger: #ff4d00;
-  --radius: 16px;
-  --radius-lg: 24px;
+:root{
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --tx: #1e293b;
+  --mut: #64748b;
+  --ac: #2563eb;
+  --ac-hover: #1d4ed8;
+  --bd: #e2e8f0;
+  --green: #10b981;
+  --red: #ef4444;
+  --shadow: 0 10px 30px -10px rgba(0,0,0,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif}
+body{
+  background-color:var(--bg);
+  color:var(--tx);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow-x:hidden;
+  position:relative;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  background: var(--bg);
-  color: var(--tx);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  min-height: 100vh;
-  overflow-x: hidden;
-  line-height: 1.5;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(255, 138, 0, 0.12), transparent),
-    radial-gradient(ellipse 60% 40% at 85% 10%, rgba(255, 77, 0, 0.08), transparent);
-}
+/* ================= ANIMATED BACKGROUND BLOBS ================= */
+.bg-blob { position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.6; animation: float 10s infinite ease-in-out alternate; }
+.blob-1 { top: -10%; left: -10%; width: 500px; height: 500px; background: rgba(37,99,235,0.15); }
+.blob-2 { bottom: -10%; right: -10%; width: 400px; height: 400px; background: rgba(255,138,0,0.15); animation-delay: -5s; }
+@keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
 
-/* ===== NAV ===== */
-.nav {
-  position: sticky; top: 0; z-index: 100;
+/* ================= NAVBAR ================= */
+.public-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 999; height: 70px;
+  background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  animation: slideDown 0.5s ease-out;
+}
+.public-nav-container { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+.public-brand { display: inline-flex; align-items: center; text-decoration: none; color: var(--tx); font-weight: 800; font-size: 22px; letter-spacing: -0.5px; }
+.public-brand span { color: #ff8a00; }
+.public-nav-actions { display: flex; align-items: center; gap: 14px; }
+.btn-logout { background: #fff; color: var(--tx); border: 1px solid var(--bd); padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+.btn-logout:hover { background: #f8fafc; color: var(--red); border-color: #fecaca; }
+
+/* ================= MAIN LAYOUT ================= */
+.main-wrapper { flex: 1; max-width: 850px; width: 100%; margin: 110px auto 50px; padding: 0 20px; z-index: 1; }
+
+/* Premium Cards */
+.c {
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
-  background: rgba(5, 5, 5, 0.8);
-  border-bottom: 1px solid var(--bd);
-  padding: 14px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 24px; padding: 35px; margin-bottom: 24px;
+  box-shadow: var(--shadow); transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeUp 0.6s ease-out backwards;
 }
-.nav-inner {
-  max-width: 1100px; margin: 0 auto;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-.logo span { background: linear-gradient(135deg, var(--ac), var(--ac2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.nav-links { display: flex; gap: 8px; align-items: center; }
-.nav-links a {
-  color: var(--mut); text-decoration: none; font-size: 14px; font-weight: 500;
-  padding: 8px 14px; border-radius: 10px; transition: 0.2s;
-}
-.nav-links a:hover { color: var(--tx); background: rgba(255,255,255,0.05); }
-.btn-nav {
-  background: linear-gradient(135deg, var(--ac), var(--ac2));
-  color: #000 !important; font-weight: 700 !important;
-  padding: 10px 18px !important;
-}
-.btn-nav:hover { filter: brightness(1.1); }
+.c:hover { transform: translateY(-3px); box-shadow: 0 15px 35px -5px rgba(0,0,0,0.1); }
+.c-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.c-header h3 { font-size: 20px; font-weight: 800; color: var(--tx); letter-spacing: -0.5px; }
 
-/* ===== HERO ===== */
-.hero {
-  max-width: 1100px; margin: 0 auto;
-  padding: 80px 24px 60px;
-  text-align: center;
-}
-.badge {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,138,0,0.1); border: 1px solid rgba(255,138,0,0.3);
-  color: var(--ac); font-size: 13px; font-weight: 600;
-  padding: 8px 16px; border-radius: 999px; margin-bottom: 28px;
-}
-.hero h1 {
-  font-size: clamp(36px, 6vw, 56px);
-  font-weight: 800; letter-spacing: -1.5px; line-height: 1.15;
-  margin-bottom: 20px;
-}
-.hero h1 .grad {
-  background: linear-gradient(135deg, var(--ac), var(--ac2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.hero p {
-  color: var(--mut); font-size: 18px; max-width: 560px;
-  margin: 0 auto 36px; line-height: 1.6;
-}
-.hero-cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-.btn-primary {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: linear-gradient(135deg, var(--ac), var(--ac2));
-  color: #000; font-weight: 700; font-size: 16px;
-  padding: 16px 28px; border-radius: 14px; border: none;
-  cursor: pointer; text-decoration: none; transition: 0.25s;
-}
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 30px -8px var(--ac); }
-.btn-secondary {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,0.05); color: var(--tx);
-  font-weight: 600; font-size: 16px;
-  padding: 16px 28px; border-radius: 14px;
-  border: 1px solid var(--bd); cursor: pointer; text-decoration: none; transition: 0.25s;
-}
-.btn-secondary:hover { background: rgba(255,255,255,0.09); }
+/* Inputs & Forms */
+.input-group { margin-bottom: 20px; animation: fadeUp 0.5s ease-out backwards; }
+.input-group label { display: block; font-size: 13px; color: var(--tx); margin-bottom: 8px; font-weight: 700; }
+.input-group input { width: 100%; padding: 16px; border-radius: 14px; border: 2px solid var(--bd); background: #fff; color: var(--tx); font-size: 15px; font-weight: 500; outline: none; transition: all 0.3s; }
+.input-group input:focus { border-color: var(--ac); box-shadow: 0 0 0 4px rgba(37,99,235,0.1); transform: translateY(-1px); }
 
-.stats {
-  display: flex; justify-content: center; gap: 48px;
-  margin-top: 56px; flex-wrap: wrap;
-}
-.stat { text-align: center; }
-.stat .num { font-size: 28px; font-weight: 800; color: var(--ac); }
-.stat .label { font-size: 13px; color: var(--mut); margin-top: 4px; }
+/* Buttons */
+.btn-primary { width: 100%; padding: 16px; border-radius: 14px; border: none; background: linear-gradient(135deg, var(--ac), #3b82f6); color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 20px -6px rgba(37,99,235,0.4); position: relative; overflow: hidden; }
+.btn-primary::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: 0.5s; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 25px -6px rgba(37,99,235,0.5); }
+.btn-primary:hover::after { left: 100%; }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
-/* ===== SECTIONS ===== */
-.section {
-  max-width: 1100px; margin: 0 auto;
-  padding: 70px 24px;
-}
-.section-header { text-align: center; margin-bottom: 48px; }
-.section-header h2 {
-  font-size: 32px; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 12px;
-}
-.section-header p { color: var(--mut); font-size: 16px; max-width: 480px; margin: 0 auto; }
+/* Tutorial Link */
+.tutorial-link { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 24px; color: var(--ac); text-decoration: none; font-size: 14px; font-weight: 700; padding: 14px; border-radius: 12px; background: #eff6ff; border: 1px dashed #93c5fd; transition: all 0.3s; }
+.tutorial-link:hover { background: #dbeafe; transform: scale(1.02); }
 
-/* ===== HOW IT WORKS ===== */
-.steps {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-}
-.step {
-  background: var(--card); border: 1px solid var(--bd);
-  border-radius: var(--radius-lg); padding: 32px 28px;
-  backdrop-filter: blur(16px); position: relative;
-  transition: 0.3s;
-}
-.step:hover { border-color: rgba(255,138,0,0.3); transform: translateY(-4px); }
-.step-num {
-  width: 42px; height: 42px; border-radius: 12px;
-  background: linear-gradient(135deg, var(--ac), var(--ac2));
-  color: #000; font-weight: 800; font-size: 18px;
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 20px;
-}
-.step h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
-.step p { color: var(--mut); font-size: 14px; line-height: 1.6; }
-.step a { color: var(--ac); text-decoration: none; font-weight: 600; }
-.step a:hover { text-decoration: underline; }
+/* API Key Box */
+.api-key-box { background: linear-gradient(to right, #f8fafc, #f1f5f9); padding: 20px; border-radius: 16px; font-family: 'Courier New', monospace; font-size: 16px; word-break: break-all; border: 1px solid var(--bd); display: flex; justify-content: space-between; align-items: center; color: var(--ac); font-weight: 700; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+.copy-btn { background: var(--ac); color: #fff; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 13px; transition: all 0.3s; }
+.copy-btn:hover { background: var(--ac-hover); transform: scale(1.05); }
 
-/* ===== REGISTER / GET KEY ===== */
-.get-key-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 40px; align-items: start;
-}
-@media (max-width: 800px) { .get-key-grid { grid-template-columns: 1fr; } }
-
-.auth-card {
-  background: var(--card); border: 1px solid var(--bd);
-  border-radius: var(--radius-lg); padding: 36px;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 30px 60px -15px rgba(0,0,0,0.6);
-}
-.auth-card h3 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-.auth-card .sub { color: var(--mut); font-size: 14px; margin-bottom: 28px; }
-
-.input-group { margin-bottom: 18px; }
-.input-group label {
-  display: block; font-size: 12px; color: var(--mut);
-  margin-bottom: 8px; font-weight: 600; letter-spacing: 0.3px;
-}
-.input-group input {
-  width: 100%; padding: 14px 16px; border-radius: 12px;
-  border: 1px solid var(--bd); background: rgba(0,0,0,0.35);
-  color: #fff; font-size: 15px; outline: none; transition: 0.25s;
-  font-family: inherit;
-}
-.input-group input:focus {
-  border-color: var(--ac); background: rgba(0,0,0,0.5);
-  box-shadow: 0 0 0 3px var(--ac-glow);
-}
-.input-group .hint { font-size: 12px; color: var(--mut); margin-top: 6px; }
-
-.tutorial-link {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  margin-bottom: 20px; color: var(--ac); text-decoration: none;
-  font-size: 13px; font-weight: 600; padding: 12px;
-  border-radius: 10px; background: rgba(255,138,0,0.06);
-  border: 1px dashed rgba(255,138,0,0.4); transition: 0.25s;
-}
-.tutorial-link:hover { background: rgba(255,138,0,0.12); }
-
-.btn-full { width: 100%; justify-content: center; margin-top: 6px; }
-.btn-full:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
-
-.msg {
-  font-size: 13px; margin-top: 16px; padding: 12px 14px;
-  border-radius: 10px; text-align: center; font-weight: 500; display: none;
-}
-.msg.error { background: rgba(255,77,0,0.1); color: #ff4d00; border: 1px solid rgba(255,77,0,0.3); display: block; }
-.msg.success { background: rgba(46,204,113,0.1); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); display: block; }
-
-.features-list { list-style: none; }
-.features-list li {
-  display: flex; gap: 14px; align-items: flex-start;
-  padding: 16px 0; border-bottom: 1px solid var(--bd);
-}
-.features-list li:last-child { border-bottom: none; }
-.features-list .icon {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: rgba(255,138,0,0.12); color: var(--ac);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; flex-shrink: 0;
-}
-.features-list h4 { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
-.features-list p { font-size: 13px; color: var(--mut); }
-
-/* ===== DASHBOARD ===== */
-#main-screen { display: none; }
-.top-bar {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 28px; background: var(--card); backdrop-filter: blur(16px);
-  padding: 16px 24px; border-radius: var(--radius); border: 1px solid var(--bd);
-}
-.btn-logout {
-  background: rgba(255,77,0,0.1); color: #ff4d00;
-  border: 1px solid rgba(255,77,0,0.3); padding: 10px 18px;
-  border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px;
-  transition: 0.25s; font-family: inherit;
-}
-.btn-logout:hover { background: rgba(255,77,0,0.2); }
-
-.card {
-  background: var(--card); border: 1px solid var(--bd);
-  border-radius: var(--radius-lg); padding: 28px;
-  margin-bottom: 20px; backdrop-filter: blur(16px);
-}
-.card-header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 18px;
-}
-.card-header h3 { font-size: 18px; font-weight: 700; }
-
-.api-key-box {
-  background: rgba(0,0,0,0.5); padding: 16px 18px; border-radius: 12px;
-  font-family: 'JetBrains Mono', monospace; font-size: 14px;
-  word-break: break-all; border: 1px solid var(--bd);
-  display: flex; justify-content: space-between; align-items: center;
-  color: var(--ac); gap: 16px;
-}
-.copy-btn {
-  background: var(--ac); color: #000; border: none;
-  padding: 8px 16px; border-radius: 8px; font-weight: 700;
-  cursor: pointer; font-size: 12px; transition: 0.2s; white-space: nowrap;
-  font-family: inherit;
-}
-.copy-btn:hover { background: #ffa640; }
-
-.table-container { overflow-x: auto; margin-top: 8px; }
+/* Table */
+.table-container { overflow-x: auto; border-radius: 16px; border: 1px solid var(--bd); background: #fff; }
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th {
-  text-align: left; padding: 12px 14px; color: var(--mut);
-  font-size: 11px; border-bottom: 1px solid var(--bd);
-  font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px;
-}
-td { padding: 14px; border-bottom: 1px solid rgba(255,255,255,0.04); }
-tr:hover td { background: rgba(255,255,255,0.02); }
+th { text-align: left; padding: 16px; color: var(--mut); font-size: 12px; background: #f8fafc; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--bd); }
+td { padding: 16px; border-bottom: 1px solid #f1f5f9; color: var(--tx); font-weight: 600; }
+tr { transition: background 0.2s; }
+tr:hover td { background: #f8fafc; }
 
-.danger-zone { border-color: rgba(255,77,0,0.25); background: rgba(255,77,0,0.03); }
-.btn-danger {
-  background: #ff4d00; color: #fff; border: none;
-  padding: 12px 24px; border-radius: 10px; font-weight: 600;
-  cursor: pointer; transition: 0.25s; font-family: inherit; font-size: 14px;
-}
-.btn-danger:hover { background: #cc3e00; box-shadow: 0 5px 15px rgba(255,77,0,0.3); }
+/* Danger Zone */
+.danger-zone { border-color: #fecaca; background: linear-gradient(to bottom right, #fff, #fef2f2); }
+.btn-danger { background: var(--red); color: #fff; border: none; padding: 14px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(239,68,68,0.2); }
+.btn-danger:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(239,68,68,0.3); }
 
-/* ===== DOCS ===== */
-.docs-tabs {
-  display: flex; gap: 6px; margin-bottom: 20px;
-  background: rgba(0,0,0,0.3); padding: 6px; border-radius: 12px;
-  width: fit-content;
-}
-.docs-tab {
-  padding: 10px 20px; border-radius: 9px; border: none;
-  background: transparent; color: var(--mut); font-weight: 600;
-  font-size: 14px; cursor: pointer; transition: 0.2s; font-family: inherit;
-}
-.docs-tab.active {
-  background: linear-gradient(135deg, var(--ac), var(--ac2));
-  color: #000;
-}
-.docs-tab:hover:not(.active) { color: var(--tx); background: rgba(255,255,255,0.05); }
+/* Messages */
+.msg { font-size: 14px; margin-top: 16px; padding: 14px; border-radius: 12px; text-align: center; display: none; font-weight: 600; animation: fadeUp 0.3s ease; }
+.msg.error { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; display: block; }
+.msg.success { background: #f0fdf4; color: var(--green); border: 1px solid #bbf7d0; display: block; }
 
-.code-block {
-  background: #0d0d10; border: 1px solid var(--bd);
-  border-radius: 14px; overflow: hidden; margin-bottom: 20px;
-}
-.code-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 18px; background: rgba(255,255,255,0.03);
-  border-bottom: 1px solid var(--bd); font-size: 13px; color: var(--mut);
-}
-.code-header .method {
-  background: rgba(255,138,0,0.15); color: var(--ac);
-  padding: 3px 10px; border-radius: 6px; font-weight: 700; font-size: 12px;
-  margin-right: 10px;
-}
-.code-body {
-  padding: 20px; font-family: 'JetBrains Mono', monospace;
-  font-size: 13px; line-height: 1.7; overflow-x: auto;
-  color: #e0e0e0; white-space: pre-wrap;
-}
-.code-body .comment { color: #6a737d; }
-.code-body .string { color: #a5d6ff; }
-.code-body .key { color: #ff8a00; }
+/* Footer */
+.blog-footer { background: #fff; border-top: 1px solid var(--bd); padding: 40px 0 20px; text-align: center; margin-top: auto; }
+.blog-footer p { font-size: 13px; color: var(--mut); }
+.blog-footer .links a { color: var(--ac); text-decoration: none; font-weight: 700; margin: 0 10px; }
 
-.response-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px; margin-top: 24px;
-}
-.response-card {
-  background: rgba(0,0,0,0.3); border: 1px solid var(--bd);
-  border-radius: 12px; padding: 18px;
-}
-.response-card .tag {
-  display: inline-block; font-size: 11px; font-weight: 700;
-  padding: 4px 10px; border-radius: 6px; margin-bottom: 12px;
-}
-.tag.ok { background: rgba(46,204,113,0.15); color: #2ecc71; }
-.tag.fail { background: rgba(255,77,0,0.15); color: #ff4d00; }
-.tag.warn { background: rgba(255,193,7,0.15); color: #ffc107; }
-.response-card pre {
-  font-family: 'JetBrains Mono', monospace; font-size: 12px;
-  color: var(--mut); white-space: pre-wrap; line-height: 1.6;
-}
+/* Custom Modal (Smooth & Sexy) */
+.fam-modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: opacity 0.3s; }
+.fam-modal-backdrop.active { display: flex !important; opacity: 1; }
+.fam-modal-box { background: #ffffff; border-radius: 24px; max-width: 420px; width: 100%; padding: 32px; text-align: center; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.3); transform: scale(0.9) translateY(20px); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.fam-modal-backdrop.active .fam-modal-box { transform: scale(1) translateY(0); }
+.fam-modal-icon-wrap { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.type-danger { background: #fef2f2; color: var(--red); }
+.fam-modal-title { font-size: 22px; font-weight: 800; color: var(--tx); margin-bottom: 8px; }
+.fam-modal-text { font-size: 15px; color: var(--mut); line-height: 1.6; margin-bottom: 24px; }
+.fam-modal-actions { display: flex; gap: 12px; }
+.fam-modal-btn { padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; flex: 1; transition: 0.2s; }
+.fam-modal-btn-cancel { background: #f1f5f9; color: var(--tx); }
+.fam-modal-btn-cancel:hover { background: #e2e8f0; }
+.fam-modal-btn-confirm { background: var(--red); color: #ffffff; }
+.fam-modal-btn-confirm:hover { background: #dc2626; }
 
-/* ===== FOOTER ===== */
-.footer {
-  border-top: 1px solid var(--bd);
-  padding: 40px 24px; text-align: center;
-  color: var(--mut); font-size: 13px;
-}
-.footer a { color: var(--ac); text-decoration: none; }
-.footer .note { margin-top: 8px; font-size: 12px; opacity: 0.7; }
-
-/* ===== UTILS ===== */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.fade-in { animation: fadeIn 0.5s ease-out; }
-.hidden { display: none !important; }
-
-@media (max-width: 600px) {
-  .hero { padding: 50px 20px 40px; }
-  .stats { gap: 28px; }
-  .section { padding: 50px 20px; }
-  .auth-card { padding: 28px 22px; }
-  .nav-links a:not(.btn-nav) { display: none; }
-}
+/* Keyframe Animations */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
 
-<!-- ===================== NAV ===================== -->
-<nav class="nav">
-  <div class="nav-inner">
-    <div class="logo">⚡ Goku<span>Pay</span></div>
-    <div class="nav-links">
-      <a href="#how">How it works</a>
-      <a href="#docs">API Docs</a>
-      <a href="#get-key" class="btn-nav">Get Free API Key</a>
+<!-- Animated Background -->
+<div class="bg-blob blob-1"></div>
+<div class="bg-blob blob-2"></div>
+
+<!-- NAVBAR -->
+<header class="public-nav">
+  <div class="public-nav-container">
+    <a class="public-brand" href="index.php">⚡ GOKU<span>xFAM</span></a>
+    <div class="public-nav-actions" id="navActions" style="display:none;">
+      <button class="btn-logout" onclick="logout()">Logout</button>
     </div>
   </div>
-</nav>
+</header>
 
-<!-- ===================== LANDING (shown when not logged in) ===================== -->
-<div id="landing">
-
-  <!-- HERO -->
-  <section class="hero">
-    <div class="badge">🚀 FamApp UPI Payment Gateway</div>
-    <h1>Verify FamApp Payments<br><span class="grad">Instantly & Automatically</span></h1>
-    <p>Apne Telegram bot me FamApp payment auto-verify karo. Register karo, API key lo, integrate karo — bas 3 steps.</p>
-    <div class="hero-cta">
-      <a href="#get-key" class="btn-primary">Get Free API Key →</a>
-      <a href="#docs" class="btn-secondary">View Docs</a>
-    </div>
-    <div class="stats">
-      <div class="stat"><div class="num">~2s</div><div class="label">Verify Speed</div></div>
-      <div class="stat"><div class="num">100%</div><div class="label">Auto Verified</div></div>
-      <div class="stat"><div class="num">Free</div><div class="label">No Cost</div></div>
-    </div>
-  </section>
-
-  <!-- HOW IT WORKS -->
-  <section class="section" id="how">
-    <div class="section-header">
-      <h2>3 Steps Setup</h2>
-      <p>Apne FamApp wali Gmail + App Password se register karo. API key milegi. Bas woh key apne bot me lagao.</p>
-    </div>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">01</div>
-        <h3>Gmail App Password Banao</h3>
-        <p>FamApp transaction emails jis Gmail pe aate hain, us Gmail ka App Password banao. Normal password kaam nahi karega — sirf App Password.</p>
-        <p style="margin-top:12px"><a href="https://myaccount.google.com/apppasswords" target="_blank">Click here →</a></p>
+<!-- MAIN CONTENT -->
+<div class="main-wrapper">
+  
+  <!-- SETUP SCREEN -->
+  <div id="setup-screen">
+    <div class="c" style="max-width: 500px; margin: 0 auto; padding: 40px;">
+      <div class="c-header" style="justify-content:center;">
+        <h3 style="font-size: 24px;">Link Gmail 🚀</h3>
       </div>
-      <div class="step">
-        <div class="step-num">02</div>
-        <h3>Register Karo → API Key Lo</h3>
-        <p>Neeche form me apna Gmail aur App Password daalo. Hum Gmail verify karenge aur tumhe ek unique API key denge. Yeh key tumhari identity hai.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">03</div>
-        <h3>Bot Me Integrate Karo</h3>
-        <p>API key aur docs ke saath apne Telegram bot me verify endpoint call karo. User UTR + amount dega, API instantly verify karega — auto balance add!</p>
-      </div>
-    </div>
-  </section>
+      <p style="color:var(--mut);font-size:15px;margin-bottom:30px;text-align:center;line-height:1.6">Enter the Gmail address where you receive FamApp/FamPay payment emails, along with its 16-character App Password.</p>
 
-  <!-- GET API KEY -->
-  <section class="section" id="get-key">
-    <div class="section-header">
-      <h2>Free API Key Lo</h2>
-      <p>Sirf Gmail + App Password chahiye. Koi OTP nahi, koi signup nahi.</p>
-    </div>
-    <div class="get-key-grid">
-      <div class="auth-card">
-        <h3>⚡ Generate API Key</h3>
-        <p class="sub">Gmail + 16-char App Password se register karo</p>
-
-        <div class="input-group">
-          <label>GMAIL ADDRESS</label>
-          <input type="email" id="email" placeholder="tumhara@gmail.com">
-          <div class="hint">FamApp wali Gmail — jis pe transaction emails aate hain</div>
-        </div>
-
-        <div class="input-group">
-          <label>GMAIL APP PASSWORD</label>
-          <input type="password" id="app-pass" placeholder="xxxxxxxxxxxxxxxx" maxlength="16">
-          <div class="hint">Normal Gmail password nahi — App Password chahiye (16 chars, spaces hata do)</div>
-        </div>
-
-        <a href="https://t.me/HOWTOUSE69" target="_blank" class="tutorial-link">
-          ▶️ Watch Tutorial: How to get 16-digit App Password?
-        </a>
-
-        <button class="btn-primary btn-full" onclick="doRegister()" id="regBtn">Get My API Key →</button>
-        <p id="reg-msg" class="msg"></p>
+      <div class="input-group" style="animation-delay: 0.1s;">
+        <label>FamApp Gmail Address</label>
+        <input type="email" id="email" placeholder="your-famapp-email@gmail.com">
       </div>
 
-      <div>
-        <ul class="features-list">
-          <li>
-            <div class="icon">⚡</div>
-            <div>
-              <h4>Instant Verification</h4>
-              <p>Emails se payment details extract karke ~2 second me response</p>
-            </div>
-          </li>
-          <li>
-            <div class="icon">🔒</div>
-            <div>
-              <h4>Secure & Private</h4>
-              <p>App Password encrypt karke store hota hai. API key hashed rakhi jaati hai</p>
-            </div>
-          </li>
-          <li>
-            <div class="icon">🤖</div>
-            <div>
-              <h4>Bot Ready</h4>
-              <p>Telegram bot, website, ya koi bhi backend me easily integrate karo</p>
-            </div>
-          </li>
-          <li>
-            <div class="icon">🆓</div>
-            <div>
-              <h4>Completely Free</h4>
-              <p>Koi limit nahi, koi hidden charges nahi. Free forever</p>
-            </div>
-          </li>
-        </ul>
+      <div class="input-group" style="animation-delay: 0.2s;">
+        <label>16-Character App Password</label>
+        <input type="password" id="app-pass" placeholder="xxxx xxxx xxxx xxxx" maxlength="16">
       </div>
-    </div>
-  </section>
 
-  <!-- API DOCS -->
-  <section class="section" id="docs">
-    <div class="section-header">
-      <h2>API Documentation</h2>
-      <p>Ek hi endpoint — payments fetch karo. Simple aur powerful.</p>
-    </div>
+      <a href="https://t.me/HOWTOUSE69" target="_blank" class="tutorial-link" style="animation-delay: 0.3s;">
+        ▶️ Watch Tutorial: How to get App Password?
+      </a>
 
-    <div class="docs-tabs">
-      <button class="docs-tab active" onclick="switchTab('python')">Python</button>
-      <button class="docs-tab" onclick="switchTab('nodejs')">Node.js</button>
-      <button class="docs-tab" onclick="switchTab('curl')">cURL</button>
-    </div>
-
-    <!-- PYTHON -->
-    <div id="tab-python" class="code-block">
-      <div class="code-header">
-        <div><span class="method">GET</span> /api.php?action=get_payments</div>
-        <span>Python</span>
-      </div>
-      <div class="code-body"><span class="comment"># Install: pip install requests</span>
-import requests
-
-API_KEY = <span class="string">"pay_tumhari_key_yahan"</span>
-API_URL = <span class="string">"https://your-domain.com/api.php"</span>
-
-def get_payments():
-    res = requests.get(
-        f<span class="string">"{API_URL}?action=get_payments"</span>,
-        headers={<span class="string">"X-API-Key"</span>: API_KEY},
-        timeout=15
-    )
-    data = res.json()
-    if data.get(<span class="string">"success"</span>):
-        for p in data[<span class="string">"data"</span>]:
-            print(f<span class="string">"₹{p['amount']} from {p['sender_name']} | UTR: {p['utr']}"</span>)
-        return data[<span class="string">"data"</span>]
-    return []</div>
-    </div>
-
-    <!-- NODE.JS -->
-    <div id="tab-nodejs" class="code-block hidden">
-      <div class="code-header">
-        <div><span class="method">GET</span> /api.php?action=get_payments</div>
-        <span>Node.js</span>
-      </div>
-      <div class="code-body"><span class="comment">// Install: npm install axios</span>
-const axios = require(<span class="string">'axios'</span>);
-
-const API_KEY = <span class="string">'pay_tumhari_key_yahan'</span>;
-const API_URL = <span class="string">'https://your-domain.com/api.php'</span>;
-
-async function getPayments() {
-  const res = await axios.get(<span class="string">`${API_URL}?action=get_payments`</span>, {
-    headers: { <span class="string">'X-API-Key'</span>: API_KEY }
-  });
-  const data = res.data;
-  if (data.success) {
-    data.data.forEach(p => {
-      console.log(<span class="string">`₹${p.amount} from ${p.sender_name} | UTR: ${p.utr}`</span>);
-    });
-    return data.data;
-  }
-  return [];
-}</div>
-    </div>
-
-    <!-- CURL -->
-    <div id="tab-curl" class="code-block hidden">
-      <div class="code-header">
-        <div><span class="method">GET</span> /api.php?action=get_payments</div>
-        <span>cURL</span>
-      </div>
-      <div class="code-body">curl -X GET <span class="string">"https://your-domain.com/api.php?action=get_payments"</span> \
-  -H <span class="string">"X-API-Key: pay_tumhari_key_yahan"</span>
-
-<span class="comment"># Response example:</span>
-{
-  <span class="string">"success"</span>: true,
-  <span class="string">"data"</span>: [
-    {
-      <span class="string">"amount"</span>: 500,
-      <span class="string">"sender_name"</span>: <span class="string">"Rahul"</span>,
-      <span class="string">"utr"</span>: <span class="string">"614205359807"</span>,
-      <span class="string">"received_at"</span>: <span class="string">"2026-11-20 14:32:10"</span>
-    }
-  ]
-}</div>
-    </div>
-
-    <!-- Response Fields -->
-    <h3 style="font-size:18px;font-weight:700;margin:32px 0 16px">Response Fields</h3>
-    <div class="response-grid">
-      <div class="response-card">
-        <span class="tag ok">✅ Success</span>
-        <pre>{
-  "success": true,
-  "data": [
-    {
-      "amount": 500,
-      "sender_name": "Rahul",
-      "utr": "614205359807",
-      "received_at": "2026-11-20 14:32:10"
-    }
-  ]
-}</pre>
-      </div>
-      <div class="response-card">
-        <span class="tag fail">❌ Invalid Key</span>
-        <pre>{
-  "error": "Invalid API Key."
-}</pre>
-      </div>
-      <div class="response-card">
-        <span class="tag warn">⚠️ Rate Limited</span>
-        <pre>{
-  "error": "Too many requests."
-}</pre>
-      </div>
-    </div>
-  </section>
-
-</div><!-- end #landing -->
-
-
-<!-- ===================== DASHBOARD (shown after login) ===================== -->
-<div id="main-screen" class="section fade-in">
-  <div class="top-bar">
-    <h2 style="font-size:20px;font-weight:800">⚡ Goku<span style="background:linear-gradient(135deg,#ff8a00,#ff4d00);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Pay</span></h2>
-    <button class="btn-logout" onclick="logout()">Logout</button>
-  </div>
-
-  <!-- API KEY -->
-  <div class="card">
-    <div class="card-header">
-      <h3>Your API Key</h3>
-    </div>
-    <p style="color:var(--mut);font-size:14px;margin-bottom:14px">Is key ko apne Telegram bot / backend me use karo payments fetch karne ke liye.</p>
-    <div class="api-key-box">
-      <span id="apiKeyText">pay_...</span>
-      <button class="copy-btn" onclick="copyKey()">Copy</button>
+      <button class="btn-primary" onclick="doRegister()" id="regBtn" style="animation-delay: 0.4s;">Generate API Key</button>
+      <p id="reg-msg" class="msg"></p>
     </div>
   </div>
 
-  <!-- PAYMENTS -->
-  <div class="card">
-    <div class="card-header">
-      <h3>Recent Payments</h3>
-      <button class="copy-btn" onclick="loadPayments()" style="background:rgba(255,255,255,0.08);color:#fff">Refresh</button>
+  <!-- DASHBOARD SCREEN -->
+  <div id="main-screen" style="display:none;">
+    <!-- API Key Card -->
+    <div class="c" style="animation-delay: 0.1s;">
+      <div class="c-header">
+        <h3>Your API Key</h3>
+        <span style="background:#dcfce7;color:#16a34a;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:800;box-shadow:0 2px 10px rgba(22,163,74,0.2);">● Active</span>
+      </div>
+      <p style="color:var(--mut);font-size:14px;margin-bottom:16px">Use this key in your Telegram bot to verify payments securely.</p>
+      <div class="api-key-box">
+        <span id="apiKeyText">pay_...</span>
+        <button class="copy-btn" onclick="copyKey(event)">Copy</button>
+      </div>
     </div>
-    <div class="table-container">
-      <table id="payTable">
-        <thead>
-          <tr>
-            <th>Amount</th>
-            <th>Sender</th>
-            <th>UTR / Txn ID</th>
-            <th>Time</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+
+    <!-- Payments Table Card -->
+    <div class="c" style="animation-delay: 0.2s;">
+      <div class="c-header">
+        <h3>Recent Payments</h3>
+        <button class="copy-btn" onclick="loadPayments()" style="background:#f1f5f9;color:#0f172a;box-shadow:none;">Refresh ↻</button>
+      </div>
+      <div class="table-container">
+        <table id="payTable">
+          <thead>
+            <tr>
+              <th>Amount</th>
+              <th>Sender</th>
+              <th>UTR</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="c danger-zone" style="animation-delay: 0.3s;">
+      <h3 style="color:var(--red);margin-bottom:8px;font-size:18px;">⚠️ Danger Zone</h3>
+      <p style="color:#991b1b;font-size:14px;margin-bottom:20px;">Deleting your account will permanently remove your linked Gmail, API Key, and all payment history.</p>
+      <button class="btn-danger" onclick="deleteAccount()">Delete Account</button>
     </div>
   </div>
 
-  <!-- DANGER ZONE -->
-  <div class="card danger-zone">
-    <h3 style="color:#ff4d00;margin-bottom:8px;font-size:16px">⚠️ Danger Zone</h3>
-    <p style="color:var(--mut);font-size:14px;margin-bottom:18px">Deleting your account will permanently remove your linked Gmail, API Key, and all payment history.</p>
-    <button class="btn-danger" onclick="deleteAccount()">Delete Email / Account</button>
-  </div>
 </div>
 
-
 <!-- FOOTER -->
-<footer class="footer">
-  <div>⚡ GokuPay — Free FamApp UPI Payment Verification</div>
-  <div class="note">Not affiliated with FamPay / FamApp. Made with ❤️</div>
+<footer class="blog-footer">
+  <div class="blog-footer-shell">
+    <div class="links">
+      <a href="index.php">Home</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="https://t.me/HOWTOUSE69" target="_blank">Support</a>
+    </div>
+    <p style="margin-top:15px;">&copy; 2026 GOKUxFAM. All rights reserved.</p>
+  </div>
 </footer>
 
+<!-- CUSTOM MODAL -->
+<div class="fam-modal-backdrop" id="famGlobalModal" onclick="if(event.target===this)famCloseModal(false)">
+  <div class="fam-modal-box">
+    <div class="fam-modal-icon-wrap type-danger" id="famModalIconWrap">
+      <i data-lucide="alert-triangle" id="famModalIcon" style="width:32px;height:32px;"></i>
+    </div>
+    <h3 class="fam-modal-title" id="famModalTitle">Confirm Action</h3>
+    <p class="fam-modal-text" id="famModalText">Are you sure you want to proceed?</p>
+    <div class="fam-modal-actions" id="famModalActions">
+      <button type="button" class="fam-modal-btn fam-modal-btn-cancel" id="famModalCancelBtn" onclick="famCloseModal(false)">Cancel</button>
+      <button type="button" class="fam-modal-btn fam-modal-btn-confirm" id="famModalConfirmBtn" onclick="famCloseModal(true)">Confirm</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const $ = id => document.getElementById(id);
 let currentApiKey = '';
-let refreshTimer;
+let refreshTimer = null;
 
+// ==========================================
+// CUSTOM MODAL LOGIC
+// ==========================================
+var _famConfirmResolver = null;
+window.famConfirm = function(options) {
+  return new Promise(function(resolve) {
+    if (typeof options === 'string') options = { text: options };
+    document.getElementById('famModalTitle').textContent = options.title || 'Confirm Action';
+    document.getElementById('famModalText').textContent = options.text || '';
+    document.getElementById('famModalConfirmBtn').textContent = options.confirmText || 'Confirm';
+    _famConfirmResolver = resolve;
+    document.getElementById('famGlobalModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    if (window.lucide) lucide.createIcons();
+  });
+};
+window.famCloseModal = function(result) {
+  document.getElementById('famGlobalModal').classList.remove('active');
+  document.body.style.overflow = '';
+  if (_famConfirmResolver) { var res = _famConfirmResolver; _famConfirmResolver = null; res(!!result); }
+};
+
+// ==========================================
+// APP LOGIC
+// ==========================================
 function showMsg(el, text, type) {
   el.textContent = text;
   el.className = 'msg ' + type;
 }
 
-// ================= REGISTER =================
 async function doRegister() {
   const email = $('email').value.trim();
   const pass = $('app-pass').value.replace(/\s/g, '');
@@ -686,8 +295,7 @@ async function doRegister() {
   if (!email.includes('@')) return showMsg(msg, 'Please enter a valid Gmail address.', 'error');
   if (pass.length !== 16) return showMsg(msg, 'App Password must be exactly 16 characters.', 'error');
 
-  $('regBtn').disabled = true;
-  $('regBtn').textContent = 'Verifying Gmail...';
+  $('regBtn').disabled = true; $('regBtn').textContent = 'Verifying Gmail...';
   msg.className = 'msg'; msg.style.display = 'none';
 
   try {
@@ -701,30 +309,27 @@ async function doRegister() {
     if (data.success) {
       localStorage.setItem('goku_api_key', data.api_key);
       currentApiKey = data.api_key;
-      showMsg(msg, '✅ API Key generated successfully!', 'success');
-      setTimeout(() => loginSuccess(currentApiKey), 900);
+      setTimeout(() => loginSuccess(currentApiKey), 800);
     } else {
-      showMsg(msg, '❌ ' + (data.error || 'Registration failed'), 'error');
-      $('regBtn').disabled = false;
-      $('regBtn').textContent = 'Get My API Key →';
+      showMsg(msg, '❌ ' + data.error, 'error');
+      $('regBtn').disabled = false; $('regBtn').textContent = 'Generate API Key';
     }
   } catch (e) {
     showMsg(msg, 'Network error. Check your internet.', 'error');
-    $('regBtn').disabled = false;
-    $('regBtn').textContent = 'Get My API Key →';
+    $('regBtn').disabled = false; $('regBtn').textContent = 'Generate API Key';
   }
 }
 
-// ================= DASHBOARD =================
 function loginSuccess(key) {
   currentApiKey = key;
-  $('landing').classList.add('hidden');
+  $('setup-screen').style.display = 'none';
   $('main-screen').style.display = 'block';
+  $('navActions').style.display = 'flex';
   $('apiKeyText').textContent = key;
+  
   loadPayments();
   clearInterval(refreshTimer);
   refreshTimer = setInterval(loadPayments, 15000);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function logout() {
@@ -732,11 +337,13 @@ function logout() {
   location.reload();
 }
 
-function copyKey() {
+function copyKey(e) {
   navigator.clipboard.writeText(currentApiKey);
-  const btn = document.querySelector('#main-screen .copy-btn');
-  btn.textContent = 'Copied!';
-  setTimeout(() => btn.textContent = 'Copy', 2000);
+  const btn = e.target;
+  const old = btn.textContent;
+  btn.textContent = 'Copied! ✓';
+  btn.style.background = '#10b981';
+  setTimeout(() => { btn.textContent = old; btn.style.background = 'var(--ac)'; }, 2000);
 }
 
 async function loadPayments() {
@@ -746,18 +353,19 @@ async function loadPayments() {
       headers: {'X-API-Key': currentApiKey}
     });
     const data = await res.json();
+    
     const tbody = $('payTable').querySelector('tbody');
-
+    
     if (!data.success || !data.data || !data.data.length) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--mut);padding:28px">No payments found yet. Worker is checking emails...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--mut);padding:40px;font-weight:500;">No payments found yet. Worker is checking emails...</td></tr>`;
       return;
     }
-
+    
     tbody.innerHTML = data.data.map(p => `
       <tr>
-        <td><b style="color:var(--ac)">₹${p.amount}</b></td>
-        <td>${p.sender_name || '-'}</td>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${p.utr || p.transaction_id || '-'}</td>
+        <td><b style="color:var(--ac);font-size:15px;">₹${p.amount}</b></td>
+        <td>${p.sender_name}</td>
+        <td style="font-family:monospace;font-size:13px;background:#f8fafc;padding:6px 10px;border-radius:6px;border:1px solid #e2e8f0;">${p.utr}</td>
         <td style="color:var(--mut);font-size:13px">${p.received_at}</td>
       </tr>
     `).join('');
@@ -765,8 +373,14 @@ async function loadPayments() {
 }
 
 async function deleteAccount() {
-  if (!confirm('⚠️ WARNING: Are you sure you want to delete your account permanently?')) return;
-  if (!confirm('🛑 REALLY DELETE? All your data will be lost.')) return;
+  const confirmed = await famConfirm({
+    title: "Delete Account?",
+    text: "WARNING: This will permanently remove your linked Gmail, API Key, and all payment history. This cannot be undone.",
+    confirmText: "Yes, Delete",
+    danger: true
+  });
+
+  if (!confirmed) return;
 
   try {
     const res = await fetch('api.php?action=delete_account', {
@@ -774,34 +388,34 @@ async function deleteAccount() {
       headers: {'X-API-Key': currentApiKey, 'Content-Type': 'application/json'}
     });
     const data = await res.json();
+    
     if (data.success) {
-      alert('✅ Account deleted successfully.');
-      logout();
+      famAlert("✅ Account deleted successfully.");
+      setTimeout(logout, 1500);
     } else {
-      alert('❌ ' + (data.error || 'Failed'));
+      famAlert("❌ " + data.error);
     }
   } catch (e) {
-    alert('❌ Network Error');
+    famAlert("❌ Network Error");
   }
 }
 
-// ================= DOCS TABS =================
-function switchTab(name) {
-  ['python', 'nodejs', 'curl'].forEach(t => {
-    const el = $('tab-' + t);
-    if (el) el.classList.toggle('hidden', t !== name);
+window.famAlert = function(msg) {
+  return new Promise((resolve) => {
+    document.getElementById('famModalTitle').textContent = 'Notice';
+    document.getElementById('famModalText').textContent = msg;
+    document.getElementById('famModalCancelBtn').style.display = 'none';
+    document.getElementById('famModalConfirmBtn').textContent = 'OK';
+    document.getElementById('famModalConfirmBtn').style.background = '#2563eb';
+    _famConfirmResolver = resolve;
+    document.getElementById('famGlobalModal').classList.add('active');
   });
-  document.querySelectorAll('.docs-tab').forEach(btn => {
-    btn.classList.toggle('active', btn.textContent.toLowerCase().includes(name === 'nodejs' ? 'node' : name));
-  });
-}
+};
 
-// ================= INIT =================
 window.onload = () => {
+  if (window.lucide) lucide.createIcons();
   const savedKey = localStorage.getItem('goku_api_key');
-  if (savedKey) {
-    loginSuccess(savedKey);
-  }
+  if (savedKey) loginSuccess(savedKey);
 };
 </script>
 </body>
