@@ -15,28 +15,35 @@ $requestCount = (int)($database->getReference($rateLimitRef)->getValue() ?: 0);
 if ($requestCount >= API_RATE_LIMIT_PER_MINUTE) { http_response_code(429); echo json_encode(["error" => "Too many requests."]); exit; }
 $database->getReference($rateLimitRef)->set($requestCount + 1);
 
-// 1. REGISTER (Ahiya UPI ID add karyu)
+// 1. REGISTER (Ahiya UPI ID pan save thashe)
 if ($action === 'register') {
     $email = strtolower(trim($input['email'] ?? ''));
     $appPassword = str_replace(' ', '', $input['app_password'] ?? '');
-    $upiId = trim($input['upi_id'] ?? ''); // Nava user ni UPI ID
+    $upiId = trim($input['upi_id'] ?? ''); // Multi-user UPI ID
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($appPassword) !== 16 || empty($upiId)) {
         echo json_encode(["error" => "Valid email, UPI ID, and 16-char App Password required."]); exit;
     }
 
-    $inbox = @imap_open("{imap.gmail.com:993/imap/ssl}INBOX", $email, $appPassword);
-    if (!$inbox) { echo json_encode(["error" => "Gmail connection failed."]); exit; }
+    // 🔥 FIX: Timeout add karyo che (5 seconds) jethi page atkay nahi
+    $inbox = @imap_open("{imap.gmail.com:993/imap/ssl}INBOX", $email, $appPassword, 0, 1, ['DISABLE_AUTHENTICATOR' => 'GSSAPI']);
+    
+    if (!$inbox) { 
+        // Jo Railway e block karyu hoy to ahiya error dekhashse
+        echo json_encode(["error" => "Gmail connection failed: " . imap_last_error()]); 
+        exit; 
+    }
     imap_close($inbox);
 
     $users = $database->getReference('users')->orderByChild('email')->equalTo($email)->getValue();
+    
     if ($users) {
         $userId = array_key_first($users); $user = $users[$userId];
         $rawApiKey = $user['api_key'] ?? ('pay_' . bin2hex(random_bytes(24)));
         $database->getReference('users/' . $userId)->update([
             'app_password' => encrypt_pass($appPassword), 
             'api_key' => $rawApiKey, 
-            'upi_id' => $upiId, // Update UPI ID
+            'upi_id' => $upiId, 
             'status' => 'active'
         ]);
         $database->getReference('api_keys/' . hash('sha256', $rawApiKey))->set($userId);
@@ -47,7 +54,7 @@ if ($action === 'register') {
     $newUserRef = $database->getReference('users')->push([
         'email' => $email, 
         'app_password' => encrypt_pass($appPassword), 
-        'upi_id' => $upiId, // Save UPI ID
+        'upi_id' => $upiId, 
         'api_key' => $rawApiKey, 
         'status' => 'active', 
         'created_at' => time()
@@ -56,11 +63,12 @@ if ($action === 'register') {
     echo json_encode(["success" => true, "api_key" => $rawApiKey]); exit;
 }
 
-// 2. GET PAYMENTS (Same as before)
+// 2. GET PAYMENTS
 if ($action === 'get_payments') {
     $headers = array_change_key_case(getallheaders(), CASE_LOWER);
     $apiKey = $headers['x-api-key'] ?? $_GET['api_key'] ?? ''; 
     if (!$apiKey) { echo json_encode(["error" => "API Key missing."]); exit; }
+    
     $userId = $database->getReference('api_keys/' . hash('sha256', $apiKey))->getValue();
     if (!$userId) { echo json_encode(["error" => "Invalid API Key."]); exit; }
 
@@ -75,7 +83,7 @@ if ($action === 'get_payments') {
     echo json_encode(["success" => true, "data" => $result]); exit;
 }
 
-// 3. CREATE ORDER (Ahiya User ni UPI ID fetch thashe)
+// 3. CREATE ORDER (User ni personal UPI ID ahiya fetch thashe)
 if ($action === 'create_order') {
     $amount = floatval($input['amount'] ?? 0);
     $apiKey = $input['api_key'] ?? '';
@@ -84,7 +92,7 @@ if ($action === 'create_order') {
     $userId = $database->getReference('api_keys/' . hash('sha256', $apiKey))->getValue();
     if (!$userId) { echo json_encode(["error" => "Invalid API Key."]); exit; }
 
-    // User na data ma thi UPI ID kadhvi
+    // Check karo ke user e UPI ID set kari che ke nahi
     $userData = $database->getReference('users/' . $userId)->getValue();
     $userUpiId = $userData['upi_id'] ?? '';
     
@@ -104,7 +112,7 @@ if ($action === 'create_order') {
     exit;
 }
 
-// 4. VERIFY ORDER (Same as before)
+// 4. VERIFY ORDER
 if ($action === 'verify_order') {
     $orderId = $input['order_id'] ?? '';
     $utr = trim($input['utr'] ?? '');
