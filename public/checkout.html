@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Secure Checkout - GOKUxFAM</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- QRCode.js Library -->
@@ -11,107 +11,142 @@
 <style>
 :root{
   --bg: #f4f7fb;
-  --card: rgba(255,255,255,0.9);
+  --card: #ffffff;
   --tx: #1e293b;
   --mut: #64748b;
   --ac: #2563eb;
   --bd: #e2e8f0;
   --green: #10b981;
+  --shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
 }
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Plus Jakarta Sans',sans-serif;-webkit-tap-highlight-color: transparent;}
 body{
   background-color:var(--bg);color:var(--tx);min-height:100vh;display:flex;justify-content:center;align-items:center;
   background-image: radial-gradient(circle at 10% 20%, rgba(37,99,235,0.05), transparent 40%), radial-gradient(circle at 90% 80%, rgba(255,138,0,0.05), transparent 40%);
-  overflow-x: hidden;
+  padding: 20px 10px;
 }
-.w{width:100%;max-width:440px;padding:20px;position:relative;z-index:1}
+.w{width:100%;max-width:420px;position:relative;z-index:1}
 
-/* Background Blobs */
-.bg-blob { position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.6; animation: float 10s infinite ease-in-out alternate; }
-.blob-1 { top: -10%; left: -10%; width: 400px; height: 400px; background: rgba(37,99,235,0.15); }
-.blob-2 { bottom: -10%; right: -10%; width: 300px; height: 300px; background: rgba(255,138,0,0.15); animation-delay: -5s; }
-@keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
-
-/* Main Card */
+/* Razorpay Style Card */
 .card{
-  background:var(--card); backdrop-filter: blur(20px); border:1px solid rgba(255,255,255,0.8);
-  border-radius:28px; padding:35px 28px; box-shadow:0 20px 40px -10px rgba(0,0,0,0.08);
-  text-align:center; position:relative; overflow:hidden;
-  animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background:var(--card); border-radius:24px; padding:24px 20px;
+  box-shadow: var(--shadow); text-align:center; position:relative; overflow:hidden;
+  animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,#2563eb,#ff8a00)}
-.brand{font-size:18px;font-weight:800;color:var(--ac);margin-bottom:20px;letter-spacing:0.5px}
-.brand span{color:#ff8a00}
-h1{font-size:34px;font-weight:800;margin-bottom:8px;color:var(--tx);letter-spacing:-1px}
-p.sub{color:var(--mut);font-size:14px;margin-bottom:20px}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#2563eb,#ff8a00)}
 
-/* UPI Apps Logos */
-.upi-apps { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; animation: fadeIn 0.8s ease-out; }
-.upi-apps img { width: 45px; height: 45px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); object-fit: cover; border: 1px solid #fff; transition: 0.3s; }
-.upi-apps img:hover { transform: translateY(-3px) scale(1.1); }
+/* Header */
+.brand{font-size:16px;font-weight:800;color:var(--ac);margin-bottom:15px;letter-spacing:0.5px}
+.brand span{color:#ff8a00}
+h1{font-size:28px;font-weight:800;margin-bottom:4px;color:var(--tx);letter-spacing:-0.5px}
+.merchant-name{font-size:13px;color:var(--mut);margin-bottom:20px;font-weight:600}
+.timer-box { display: inline-flex; align-items: center; gap: 6px; background: #fef2f2; color: #ef4444; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 20px; }
+
+/* App Icons Row */
+.apps-row { display: flex; justify-content: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.app-icon { 
+    display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; 
+    padding: 10px; border-radius: 16px; border: 1px solid transparent; transition: all 0.2s;
+}
+.app-icon:hover { background: #f8fafc; border-color: var(--bd); transform: translateY(-2px); }
+.app-icon img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 1px solid #fff; }
+.app-icon span { font-size: 11px; font-weight: 700; color: var(--tx); }
+
+/* OR Divider */
+.divider { display: flex; align-items: center; text-align: center; margin: 20px 0; color: var(--mut); font-size: 12px; font-weight: 700; }
+.divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--bd); }
+.divider:not(:empty)::before { margin-right: 15px; }
+.divider:not(:empty)::after { margin-left: 15px; }
 
 /* QR Frame */
 .qr-box{
-  background:#fff;padding:16px;border-radius:20px;display:inline-block;margin-bottom:24px;
-  border:2px dashed #cbd5e1; transition:0.3s; position:relative; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  background:#fff;padding:12px;border-radius:16px;display:inline-block;margin-bottom:20px;
+  border:2px dashed #cbd5e1; transition:0.3s; position:relative; box-shadow: 0 5px 15px rgba(0,0,0,0.02);
 }
-.qr-box:hover{border-color:var(--ac); transform: scale(1.02);}
-#qrcode { display: flex; justify-content: center; align-items: center; width: 180px; height: 180px; }
+#qrcode { display: flex; justify-content: center; align-items: center; width: 160px; height: 160px; }
 #qrcode img, #qrcode canvas { border-radius: 8px; }
 
-/* Spinner */
-.spinner{width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-radius:10px}
-.spinner::after{content:"";width:40px;height:40px;border:4px solid #e2e8f0;border-top-color:var(--ac);border-radius:50%;animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-
 /* Input */
-.input-group{text-align:left;margin-bottom:24px}
-.input-group label{display:block;font-size:13px;color:var(--tx);margin-bottom:10px;font-weight:700}
+.input-group{text-align:left;margin-bottom:18px}
+.input-group label{display:block;font-size:12px;color:var(--tx);margin-bottom:8px;font-weight:700}
 .input-group input{
-  width:100%;padding:16px;border-radius:14px;border:2px solid var(--bd);background:#fff;color:var(--tx);
-  font-size:18px;font-weight:700;text-align:center;letter-spacing:2px;text-transform:uppercase;transition:0.3s;
+  width:100%;padding:14px;border-radius:12px;border:2px solid var(--bd);background:#f8fafc;color:var(--tx);
+  font-size:16px;font-weight:700;text-align:center;letter-spacing:1px;text-transform:uppercase;transition:0.3s; outline:none;
 }
-.input-group input:focus{border-color:var(--ac);box-shadow:0 0 0 4px rgba(37,99,235,0.15);transform:translateY(-2px)}
-.input-group input::placeholder{font-weight:500;letter-spacing:0;text-transform:none;font-size:15px;color:#94a3b8}
+.input-group input:focus{border-color:var(--ac);background:#fff;box-shadow:0 0 0 4px rgba(37,99,235,0.1)}
+.input-group input::placeholder{font-weight:500;letter-spacing:0;text-transform:none;font-size:14px;color:#94a3b8}
 
 /* Button */
 .btn{
-  width:100%;padding:18px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--ac),#3b82f6);
-  color:#fff;font-weight:800;font-size:16px;cursor:pointer;transition:0.3s;box-shadow:0 10px 20px -8px rgba(37,99,235,0.4);
-  position: relative; overflow: hidden;
+  width:100%;padding:16px;border-radius:12px;border:none;background:var(--ac);
+  color:#fff;font-weight:800;font-size:15px;cursor:pointer;transition:0.3s;box-shadow:0 8px 20px -6px rgba(37,99,235,0.4);
 }
-.btn:hover{transform:translateY(-2px);box-shadow:0 15px 25px -8px rgba(37,99,235,0.5)}
-.btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;box-shadow:none}
-.btn::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: 0.5s; }
-.btn:hover::after { left: 100%; }
+.btn:hover{background:#1d4ed8;transform:translateY(-1px)}
+.btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
 
 /* Messages */
-.msg{font-size:14px;margin-top:20px;padding:14px;border-radius:12px;display:none;font-weight:600;line-height:1.5}
+.msg{font-size:13px;margin-top:15px;padding:12px;border-radius:10px;display:none;font-weight:600;line-height:1.5}
 .msg.err{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;display:block}
 
-/* Animations */
-@keyframes scaleUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* Bottom Sheet (More Options) */
+.bottom-sheet-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); z-index: 999; display: none; opacity: 0; transition: opacity 0.3s; }
+.bottom-sheet-overlay.active { display: block; opacity: 1; }
+.bottom-sheet { 
+    position: fixed; bottom: -100%; left: 0; right: 0; background: #fff; border-radius: 24px 24px 0 0; 
+    padding: 24px 20px; z-index: 1000; transition: bottom 0.3s cubic-bezier(0.175, 0.885, 0.32, 1); 
+    max-width: 420px; margin: 0 auto;
+}
+.bottom-sheet.active { bottom: 0; }
+.sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.sheet-header h3 { font-size: 18px; font-weight: 800; color: var(--tx); }
+.close-sheet { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-weight: 800; cursor: pointer; color: var(--mut); }
+.sheet-list { display: flex; flex-direction: column; gap: 10px; }
+.sheet-item { display: flex; align-items: center; gap: 15px; padding: 14px; border: 1px solid var(--bd); border-radius: 12px; cursor: pointer; transition: 0.2s; background: #fff; text-decoration: none; color: var(--tx); font-weight: 700; font-size: 14px; }
+.sheet-item:hover { background: #f8fafc; border-color: var(--ac); }
+.sheet-item img { width: 32px; height: 32px; border-radius: 8px; }
+.sheet-item .arrow { margin-left: auto; color: var(--mut); }
+
+/* Spinner */
+.spinner{width:160px;height:160px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-radius:10px}
+.spinner::after{content:"";width:30px;height:30px;border:4px solid #e2e8f0;border-top-color:var(--ac);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
 
-<!-- Background Blobs -->
-<div class="bg-blob blob-1"></div>
-<div class="bg-blob blob-2"></div>
-
 <div class="w">
   <div class="card" id="mainCard">
     <div class="brand">⚡ GOKU<span>xFAM</span></div>
-    <h1>Pay ₹<span id="amt">0</span></h1>
-    <p class="sub">Scan the QR code using any UPI App</p>
+    
+    <h1>₹<span id="amt">0</span></h1>
+    <div class="merchant-name">Paying to <span id="merchantName">GOKUxFAM</span></div>
+    
+    <div class="timer-box">⏱️ Pay within 10:00 mins</div>
 
-    <!-- UPI Apps Logos -->
-    <div class="upi-apps">
-        <img src="https://i.ibb.co/nTkJ5xX/images.jpg" alt="Google Pay">
-        <img src="https://i.ibb.co/3ynmXKfd/IMG-20261018-001955-357.jpg" alt="PhonePe">
-        <img src="https://i.ibb.co/fYqyB7Lq/IMG-20261018-001957-702.jpg" alt="Paytm">
+    <!-- UPI Apps Row -->
+    <div class="apps-row">
+        <div class="app-icon" onclick="openApp('gpay')">
+            <img src="https://i.ibb.co/nTkJ5xX/images.jpg" alt="Google Pay">
+            <span>GPay</span>
+        </div>
+        <div class="app-icon" onclick="openApp('phonepe')">
+            <img src="https://i.ibb.co/3ynmXKfd/IMG-20261018-001955-357.jpg" alt="PhonePe">
+            <span>PhonePe</span>
+        </div>
+        <div class="app-icon" onclick="openApp('paytm')">
+            <img src="https://i.ibb.co/fYqyB7Lq/IMG-20261018-001957-702.jpg" alt="Paytm">
+            <span>Paytm</span>
+        </div>
+        <div class="app-icon" onclick="openMoreOptions()">
+            <div style="width:50px;height:50px;background:#f1f5f9;border-radius:12px;display:flex;align-items:center;justify-content:center;border:1px solid #cbd5e1;box-shadow:0 4px 10px rgba(0,0,0,0.05)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+            </div>
+            <span>More</span>
+        </div>
     </div>
+
+    <div class="divider">OR PAY VIA QR</div>
     
     <!-- QR Code Box -->
     <div class="qr-box">
@@ -129,14 +164,25 @@ p.sub{color:var(--mut);font-size:14px;margin-bottom:20px}
   </div>
 </div>
 
+<!-- MORE OPTIONS BOTTOM SHEET -->
+<div class="bottom-sheet-overlay" id="sheetOverlay" onclick="closeMoreOptions()"></div>
+<div class="bottom-sheet" id="moreSheet">
+    <div class="sheet-header">
+        <h3>Choose an App</h3>
+        <button class="close-sheet" onclick="closeMoreOptions()">✕</button>
+    </div>
+    <div class="sheet-list" id="sheetList">
+        <!-- Dynamic Apps List -->
+    </div>
+</div>
+
 <script>
 const $ = id => document.getElementById(id);
 let orderId = '';
 let currentAmount = 0;
 let upiId = '';
-let payeeName = '';
+let upiString = ''; // Generic String
 
-// URL Parameters
 const urlParams = new URLSearchParams(window.location.search);
 const apiKey = urlParams.get('api_key');
 const amount = urlParams.get('amount');
@@ -149,7 +195,6 @@ if (!apiKey || !amount) {
     initOrder();
 }
 
-// 1. Backend thi Order ID ane UPI ID melvo
 async function initOrder() {
     try {
         const res = await fetch('api.php?action=create_order', {
@@ -162,8 +207,12 @@ async function initOrder() {
         if (data.success) {
             orderId = data.order_id;
             upiId = data.upi_id;
-            payeeName = data.payee_name;
-            generateQR(); // Data mali gaya, have QR banavo
+            $('merchantName').textContent = data.payee_name || 'GOKUxFAM';
+            
+            // Generic UPI String (Used for QR and More Options)
+            upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(data.payee_name || 'GOKUxFAM')}&am=${currentAmount}&cu=INR&tn=${orderId}`;
+            
+            generateQR();
         } else {
             $('qrLoader').style.display = 'none';
             showMsg('err', data.error);
@@ -174,27 +223,73 @@ async function initOrder() {
     }
 }
 
-// 2. Frontend ma QR Code Generate karo
 function generateQR() {
-    // UPI String (Amount ane Order ID sathe)
-    const upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${currentAmount}&cu=INR&tn=${orderId}`;
-    
-    // QRCodeJS library use kari ne QR banavo
     new QRCode(document.getElementById("qrcode"), {
         text: upiString,
-        width: 180,
-        height: 180,
+        width: 160,
+        height: 160,
         colorDark : "#0f172a",
         colorLight : "#ffffff",
         correctLevel : QRCode.CorrectLevel.H
     });
-    
-    // Loader hide karo ane QR show karo
     $('qrLoader').style.display = 'none';
     $('qrcode').style.display = 'flex';
 }
 
-// 3. UTR Submit ane Verify
+// 🔥 DEEP LINKING LOGIC (Open Specific Apps) 🔥
+function openApp(appName) {
+    if (!upiString) return;
+
+    let appUrl = '';
+    // Specific URI Schemes for popular apps
+    if (appName === 'gpay') {
+        appUrl = upiString.replace('upi://pay', 'tez://upi/pay');
+    } else if (appName === 'phonepe') {
+        appUrl = upiString.replace('upi://pay', 'phonepe://pay');
+    } else if (appName === 'paytm') {
+        appUrl = upiString.replace('upi://pay', 'paytmmp://pay');
+    }
+
+    // Try to open the app
+    window.location.href = appUrl;
+
+    // Fallback after 2.5 seconds if app doesn't open (Desktop users)
+    setTimeout(() => {
+        if (!document.hidden) {
+            alert("App not installed or supported on this device. Please scan the QR code instead.");
+        }
+    }, 2500);
+}
+
+// 🔥 MORE OPTIONS LOGIC (OS App Chooser) 🔥
+function openMoreOptions() {
+    // Add more specific apps to the list dynamically
+    const apps = [
+        { name: 'Amazon Pay', icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Amazon_Pay_logo.svg/512px-Amazon_Pay_logo.svg.png', url: upiString },
+        { name: 'CRED', icon: 'https://play-lh.googleusercontent.com/Z_k1j9YlXqV5g5V5Z5V5Z5V5Z5V5Z5V5Z5V5Z5V5Z5V5Z5V5Z5V5Z5V5Z5V5Z5Z5V5Z5Z5=w240-h480', url: upiString },
+        { name: 'BHIM UPI', icon: 'https://play-lh.googleusercontent.com/9_v4F1s4L6Z4x4_4_4_4_4_4_4_4_4_4_4_4_4_4_4_4_4_4_4=w240-h480', url: upiString },
+        { name: 'Any Other UPI App', icon: 'https://cdn-icons-png.flaticon.com/512/2889/2889676.png', url: upiString }
+    ];
+
+    const listContainer = $('sheetList');
+    listContainer.innerHTML = apps.map(app => `
+        <a href="${app.url}" class="sheet-item">
+            <img src="${app.icon}" alt="${app.name}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2889/2889676.png'">
+            <span>${app.name}</span>
+            <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+        </a>
+    `).join('');
+
+    $('sheetOverlay').classList.add('active');
+    $('moreSheet').classList.add('active');
+}
+
+function closeMoreOptions() {
+    $('sheetOverlay').classList.remove('active');
+    $('moreSheet').classList.remove('active');
+}
+
+// UTR Verification
 async function submitUTR() {
     const utr = $('utr').value.trim().toUpperCase();
     const btn = $('submitBtn');
@@ -214,9 +309,8 @@ async function submitUTR() {
         const data = await res.json();
 
         if (data.success) {
-            // Success UI
             $('mainCard').innerHTML = `
-                <div style="font-size:70px;margin-bottom:10px; animation: scaleUp 0.5s ease;">🎉</div>
+                <div style="font-size:70px;margin-bottom:10px; animation: slideUp 0.5s ease;">🎉</div>
                 <h1 style="color:var(--green); font-size:26px;">Payment Verified!</h1>
                 <p class="sub" style="margin-top:10px;">Your order has been completed successfully.</p>
                 <div style="margin-top:24px;background:#f0fdf4;padding:20px;border-radius:16px;border:1px solid #bbf7d0;text-align:left; box-shadow: 0 4px 10px rgba(16,185,129,0.1);">
