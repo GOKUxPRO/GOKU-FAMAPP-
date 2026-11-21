@@ -1,38 +1,73 @@
 <?php
-require_once __DIR__ . '/config.php';
+// Composer autoload load karo
+require __DIR__ . '/vendor/autoload.php';
 
-// Composer autoload (run: composer install)
-if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-    require_once __DIR__ . '/vendor/autoload.php';
+// Jo tamari pase config.php hoy to e load thashe
+if (file_exists(__DIR__ . '/config.php')) {
+    require __DIR__ . '/config.php';
 }
 
 use Kreait\Firebase\Factory;
 
-// Firebase Realtime Database connection
-$factory = (new Factory)->withDatabaseUri(FIREBASE_DB_URL);
-$database = $factory->createDatabase();
+// 1. Environment Variable ma thi Firebase JSON kadhvo
+$serviceAccountJson = getenv('FIREBASE_CREDENTIALS');
 
-/**
- * Simple AES-256-CBC encryption for App Password
- */
-function encrypt_pass(string $plain): string {
-    $key = hash('sha256', ENCRYPTION_KEY, true);
-    $iv  = openssl_random_pseudo_bytes(16);
-    $encrypted = openssl_encrypt($plain, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
-    return base64_encode($iv . $encrypted);
-}
-
-/**
- * Decrypt App Password
- */
-function decrypt_pass(string $encrypted): string {
-    $data = base64_decode($encrypted);
-    if ($data === false || strlen($data) < 17) {
-        return '';
+if (!$serviceAccountJson) {
+    // Jo env variable na hoy to local file check karo (Local testing mate)
+    $localFile = __DIR__ . '/firebase-credentials.json';
+    if (file_exists($localFile)) {
+        $serviceAccountJson = file_get_contents($localFile);
+    } else {
+        die(json_encode(["error" => "Firebase credentials missing. Please set FIREBASE_CREDENTIALS in Railway."]));
     }
-    $key = hash('sha256', ENCRYPTION_KEY, true);
-    $iv  = substr($data, 0, 16);
-    $cipher = substr($data, 16);
-    $plain = openssl_decrypt($cipher, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
-    return $plain === false ? '' : $plain;
 }
+
+// 2. JSON ne Decode karo
+$serviceAccount = json_decode($serviceAccountJson, true);
+
+if (!$serviceAccount) {
+    // Jo JSON ma newlines na karan error aave to tene fix karo
+    $fixedJson = str_replace(["\r", "\n"], '', $serviceAccountJson);
+    $serviceAccount = json_decode($fixedJson, true);
+}
+
+// Jo fari pan JSON invalid hoy to error aapo
+if (!$serviceAccount) {
+    die(json_encode(["error" => "Invalid Firebase JSON format. Check Environment Variables."]));
+}
+
+// 3. Firebase Connect karo
+try {
+    // Jo FIREBASE_DB_URL config.php ma define na hoy, to ahiya direct URL nakhi do
+    $dbUrl = defined('FIREBASE_DB_URL') ? FIREBASE_DB_URL : 'https://tamari-project-id.firebaseio.com'; 
+    
+    $factory = (new Factory)
+        ->withServiceAccount($serviceAccount)
+        ->withDatabaseUri($dbUrl);
+    $database = $factory->createDatabase();
+} catch (\Throwable $e) {
+    die(json_encode(["error" => "Firebase Connection Failed: " . $e->getMessage()]));
+}
+
+// 4. Password Encryption/Decryption functions
+function encrypt_pass($data) {
+    $cipher = "aes-256-cbc";
+    // ENCRYPTION_KEY config.php ma hovu joiye, nahi to default use thashe
+    $keyString = defined('ENCRYPTION_KEY') ? ENCRYPTION_KEY : 'gokuxfam_super_secret_key_1234567890';
+    
+    $key = hash('sha256', $keyString, true);
+    $iv = random_bytes(openssl_cipher_iv_length($cipher));
+    $enc = openssl_encrypt($data, $cipher, $key, OPENSSL_RAW_DATA, $iv);
+    return base64_encode($iv) . ':' . base64_encode($enc);
+}
+
+function decrypt_pass($data) {
+    $cipher = "aes-256-cbc";
+    $keyString = defined('ENCRYPTION_KEY') ? ENCRYPTION_KEY : 'gokuxfam_super_secret_key_1234567890';
+    
+    $key = hash('sha256', $keyString, true);
+    $parts = explode(':', $data, 2);
+    if (count($parts) !== 2) return false;
+    return openssl_decrypt(base64_decode($parts[1]), $cipher, $key, OPENSSL_RAW_DATA, base64_decode($parts[0]));
+}
+?>
